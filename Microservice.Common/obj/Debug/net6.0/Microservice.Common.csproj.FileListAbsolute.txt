@@ -1,0 +1,12 @@
+C:\Users\Emil JACOBSEN\source\repos\BellCaseStudy\Microservice.Common\bin\Debug\net6.0\Microservice.Common.deps.json
+C:\Users\Emil JACOBSEN\source\repos\BellCaseStudy\Microservice.Common\bin\Debug\net6.0\Microservice.Common.dll
+C:\Users\Emil JACOBSEN\source\repos\BellCaseStudy\Microservice.Common\bin\Debug\net6.0\Microservice.Common.pdb
+C:\Users\Emil JACOBSEN\source\repos\BellCaseStudy\Microservice.Common\obj\Debug\net6.0\Microservice.Common.csproj.AssemblyReference.cache
+C:\Users\Emil JACOBSEN\source\repos\BellCaseStudy\Microservice.Common\obj\Debug\net6.0\Microservice.Common.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Emil JACOBSEN\source\repos\BellCaseStudy\Microservice.Common\obj\Debug\net6.0\Microservice.Common.AssemblyInfoInputs.cache
+C:\Users\Emil JACOBSEN\source\repos\BellCaseStudy\Microservice.Common\obj\Debug\net6.0\Microservice.Common.AssemblyInfo.cs
+C:\Users\Emil JACOBSEN\source\repos\BellCaseStudy\Microservice.Common\obj\Debug\net6.0\Microservice.Common.csproj.CoreCompileInputs.cache
+C:\Users\Emil JACOBSEN\source\repos\BellCaseStudy\Microservice.Common\obj\Debug\net6.0\Microservice.Common.dll
+C:\Users\Emil JACOBSEN\source\repos\BellCaseStudy\Microservice.Common\obj\Debug\net6.0\refint\Microservice.Common.dll
+C:\Users\Emil JACOBSEN\source\repos\BellCaseStudy\Microservice.Common\obj\Debug\net6.0\Microservice.Common.pdb
+C:\Users\Emil JACOBSEN\source\repos\BellCaseStudy\Microservice.Common\obj\Debug\net6.0\ref\Microservice.Common.dll
