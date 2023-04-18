@@ -6,16 +6,17 @@ namespace Microservice.Common.Repository;
 
 public class GenericRepository<T> : IGenericRepository<T> where T : class, IIdentity
 {
-    private DbSet<T> _dbSet;
+    protected IBaseDbContext Context { get; }
+    protected DbSet<T> DbSet => Context.GetSet<T>();
 
     public GenericRepository(IBaseDbContext dbContext)
 	{
-		this._dbSet = dbContext.GetSet<T>();
+        this.Context = dbContext;
 	}
 
     public async Task AddAsync(T entity)
     {
-        await _dbSet.AddAsync(entity);
+        await DbSet.AddAsync(entity);
     }
 
     public Task DeleteAsync(Guid id)
@@ -23,24 +24,24 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class, IIden
         T instance = (T)Activator.CreateInstance(typeof(T));
         instance.Id = id;
 
-        _dbSet.Remove(instance);
+        DbSet.Remove(instance);
 
         return Task.CompletedTask;
     }
 
     public IAsyncEnumerable<T> GetAll()
     {
-        return _dbSet.AsAsyncEnumerable();
+        return DbSet.AsAsyncEnumerable();
     }
 
     public async Task<T> GetByIdAsync(Guid id)
     {
-        return await _dbSet.FindAsync(id);
+        return await DbSet.FindAsync(id);
     }
 
     public Task UpdateAsync(T entity)
     {
-        _dbSet.Update(entity);
+        DbSet.Update(entity);
 
         return Task.CompletedTask;
     }

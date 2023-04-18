@@ -1,6 +1,8 @@
-﻿namespace Microservice.Common.Repository;
+﻿using Microservice.Common.Models;
 
-public interface IGenericRepository<T>
+namespace Microservice.Common.Repository;
+
+public interface IGenericRepository<T> where T : class, IIdentity
 {
     Task<T> GetByIdAsync(Guid id);
     IAsyncEnumerable<T> GetAll();

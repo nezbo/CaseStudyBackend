@@ -14,7 +14,7 @@ public abstract class BasicCRUDCommandsHandler<TApi,TDatabase>
       IRequestHandler<UpdateEntityCommand<TApi>>,
       IRequestHandler<DeleteEntityCommand<TApi>, bool>
     where TApi : IIdentity
-    where TDatabase : IIdentity
+    where TDatabase : class, IIdentity
 {
     private readonly IGenericUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;

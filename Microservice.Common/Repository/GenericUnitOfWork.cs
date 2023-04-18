@@ -1,4 +1,5 @@
 ﻿using Microservice.Common.EntityFrameworkCore;
+using Microservice.Common.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microservice.Common.Repository
@@ -19,7 +20,7 @@ namespace Microservice.Common.Repository
             return _context.SaveChangesAsync();
         }
 
-        public IGenericRepository<T> GetRepository<T>()
+        public IGenericRepository<T> GetRepository<T>() where T : class, IIdentity
         {
             return _services.GetService<IGenericRepository<T>>();
         }
