@@ -46,7 +46,7 @@ public abstract class BasicCRUDCommandsHandler<TApi,TDatabase>
 
     public virtual async Task<IEnumerable<TApi>> Handle(ListEntitiesQuery<TApi> request, CancellationToken cancellationToken)
     {
-        return await Repository.GetAll().SelectAsync(o => _mapper.Map<TApi>(o));
+        return (await Repository.GetAllAsync()).Select(o => _mapper.Map<TApi>(o));
     }
 
     public virtual async Task Handle(UpdateEntityCommand<TApi> request, CancellationToken cancellationToken)

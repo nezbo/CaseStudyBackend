@@ -21,7 +21,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class, IIden
 
     public Task DeleteAsync(Guid id)
     {
-        T instance = (T)Activator.CreateInstance(typeof(T));
+        T instance = Activator.CreateInstance(typeof(T)) as T;
         instance.Id = id;
 
         DbSet.Remove(instance);
@@ -29,9 +29,9 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class, IIden
         return Task.CompletedTask;
     }
 
-    public IAsyncEnumerable<T> GetAll()
+    public Task<IEnumerable<T>> GetAllAsync()
     {
-        return DbSet.AsAsyncEnumerable();
+        return Task.FromResult(DbSet.AsEnumerable());
     }
 
     public async Task<T> GetByIdAsync(Guid id)
@@ -41,7 +41,8 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class, IIden
 
     public Task UpdateAsync(T entity)
     {
-        DbSet.Update(entity);
+        if(entity != null)
+            DbSet.Update(entity);
 
         return Task.CompletedTask;
     }
