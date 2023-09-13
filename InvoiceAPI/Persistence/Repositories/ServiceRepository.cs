@@ -11,7 +11,7 @@ public class ServiceRepository : GenericRepository<Service>, IServiceRepository
     {
     }
 
-    public async Task<IEnumerable<Service>> GetByInvoiceAsync(Guid invoiceId)
+    public async Task<IEnumerable<Service>> GetByInvoiceIdAsync(Guid invoiceId)
     {
         return await DbSet
             .Where(s => s.InvoiceId == invoiceId)

@@ -18,7 +18,7 @@ public class ListServicesByInvoiceIdHandler : IRequestHandler<ListServicesByInvo
 
     public async Task<IEnumerable<ServiceDto>> Handle(ListServicesByInvoiceIdQuery request, CancellationToken cancellationToken)
     {
-        var matches = await _unitOfWork.ServiceRepository.GetByInvoiceAsync(request.InvoiceId);
+        var matches = await _unitOfWork.ServiceRepository.GetByInvoiceIdAsync(request.InvoiceId);
         return matches.Select(o => _mapper.Map<ServiceDto>(o));
     }
 }

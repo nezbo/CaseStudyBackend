@@ -5,5 +5,5 @@ namespace InvoiceAPI.Persistence.Repositories;
 
 public interface IServiceRepository : IGenericRepository<Service>
 {
-    Task<IEnumerable<Service>> GetByInvoiceAsync(Guid invoiceId);
+    Task<IEnumerable<Service>> GetByInvoiceIdAsync(Guid invoiceId);
 }

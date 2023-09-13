@@ -16,7 +16,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InvoiceAPI", "InvoiceAPI\In
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microservice.Common.Test", "Microservice.Common.Test\Microservice.Common.Test.csproj", "{5995323B-E1DA-4D1A-991D-C21C5783BA45}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssetAPI.Test", "AssetAPI.Test\AssetAPI.Test.csproj", "{21FCCC27-D99E-40C7-96E2-5ABFAD886EE9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AssetAPI.Test", "AssetAPI.Test\AssetAPI.Test.csproj", "{21FCCC27-D99E-40C7-96E2-5ABFAD886EE9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceAPI.Test", "InvoiceAPI.Test\InvoiceAPI.Test.csproj", "{DA3C5575-016B-473B-8881-F2BBA9938F4E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,6 +46,10 @@ Global
 		{21FCCC27-D99E-40C7-96E2-5ABFAD886EE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21FCCC27-D99E-40C7-96E2-5ABFAD886EE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21FCCC27-D99E-40C7-96E2-5ABFAD886EE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA3C5575-016B-473B-8881-F2BBA9938F4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA3C5575-016B-473B-8881-F2BBA9938F4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA3C5575-016B-473B-8881-F2BBA9938F4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA3C5575-016B-473B-8881-F2BBA9938F4E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
