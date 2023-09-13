@@ -1,11 +1,8 @@
-using System.Reflection;
 using AssetAPI.Persistence;
 using AssetAPI.Persistence.Repositories;
-using Microservice.Common.EntityFrameworkCore;
 using Microservice.Common.Extensions;
 using Microservice.Common.Repository;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace AssetAPI
 {
@@ -20,9 +17,7 @@ namespace AssetAPI
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables();
 
-            var connectionString = builder.Configuration.GetConnectionString("WebApiDatabase");
-            builder.Services.AddDbContext<ApiDbContext>(x => x.UseSqlite(connectionString));
-            builder.Services.AddTransient<IBaseDbContext>(x => x.GetRequiredService<ApiDbContext>());
+            builder.Services.AddBaseDbContext<ApiDbContext>();
 
             builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
             builder.Services.AddTransient<IGenericUnitOfWork, UnitOfWork>();

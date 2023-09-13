@@ -1,3 +1,9 @@
+using InvoiceAPI.Persistence;
+using InvoiceAPI.Persistence.Repositories;
+using Microservice.Common.Extensions;
+using Microservice.Common.Repository;
+using System.Reflection;
+
 namespace InvoiceAPI;
 
 public class Program
@@ -6,12 +12,28 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Configuration
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .AddEnvironmentVariables();
+
         // Add services to the container.
 
+        builder.Services.AddBaseDbContext<InvoiceDbContext>();
+
+        builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
+        builder.Services.AddTransient<IGenericUnitOfWork, UnitOfWork>();
+        builder.Services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+        builder.Services.AddTransient<IInvoiceRepository, InvoiceRepository>();
+        builder.Services.AddTransient<IServiceRepository, ServiceRepository>();
+
         builder.Services.AddControllers();
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+        builder.Services.AddDateOnlyTimeOnlyStringConverters();
+
+        builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
+        builder.Services.AddMediatR(c => c.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
         var app = builder.Build();
 
@@ -28,6 +50,8 @@ public class Program
 
 
         app.MapControllers();
+
+        app.ApplyDatabaseMigrations<InvoiceDbContext>();
 
         app.Run();
     }

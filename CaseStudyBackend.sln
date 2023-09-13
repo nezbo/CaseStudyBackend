@@ -20,6 +20,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AssetAPI.Test", "AssetAPI.T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvoiceAPI.Test", "InvoiceAPI.Test\InvoiceAPI.Test.csproj", "{DA3C5575-016B-473B-8881-F2BBA9938F4E}"
 EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{807428D5-F011-40CC-ABBE-893BF67B012E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +52,10 @@ Global
 		{DA3C5575-016B-473B-8881-F2BBA9938F4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA3C5575-016B-473B-8881-F2BBA9938F4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA3C5575-016B-473B-8881-F2BBA9938F4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{807428D5-F011-40CC-ABBE-893BF67B012E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{807428D5-F011-40CC-ABBE-893BF67B012E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{807428D5-F011-40CC-ABBE-893BF67B012E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{807428D5-F011-40CC-ABBE-893BF67B012E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

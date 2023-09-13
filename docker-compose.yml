@@ -1,0 +1,15 @@
+version: '3.4'
+
+services:
+  assetapi:
+    image: ${DOCKER_REGISTRY-}assetapi
+    build:
+      context: .
+      dockerfile: AssetAPI/Dockerfile
+
+  invoiceapi:
+    image: ${DOCKER_REGISTRY-}invoiceapi
+    build:
+      context: .
+      dockerfile: InvoiceAPI/Dockerfile
+

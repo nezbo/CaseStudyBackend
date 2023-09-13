@@ -12,6 +12,11 @@ public abstract class BaseDbContext<TContext> : DbContext, IBaseDbContext
 
     }
 
+    public BaseDbContext(DbContextOptions<TContext> options) : base(options)
+    {
+
+    }
+
     public DbSet<T> GetSet<T>() where T : class, IIdentity
     {
         return this.Set<T>();
