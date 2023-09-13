@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microservice.Common.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace InvoiceAPI.Models.Api;
 
-public record Service
+public record ServiceDto : IIdentity
 {
     public Guid Id { get; set; }
     public Guid InvoiceId { get; set; }
