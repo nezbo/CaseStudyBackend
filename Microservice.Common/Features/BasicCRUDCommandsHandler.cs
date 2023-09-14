@@ -3,13 +3,13 @@ using MediatR;
 using Microservice.Common.CQRS;
 using Microservice.Common.Models;
 using Microservice.Common.Repository;
-using Microservice.Common.Extensions;
 
 namespace Microservice.Common.Features;
 
 public abstract class BasicCRUDCommandsHandler<TApi,TDatabase> 
     : IRequestHandler<CreateEntityCommand<TApi>, Guid>,
       IRequestHandler<GetEntityQuery<TApi>, TApi>,
+      IRequestHandler<ListAllEntitiesQuery<TApi>, IEnumerable<TApi>>,
       IRequestHandler<ListEntitiesQuery<TApi>, IEnumerable<TApi>>,
       IRequestHandler<UpdateEntityCommand<TApi>>,
       IRequestHandler<DeleteEntityCommand<TApi>, bool>
@@ -44,9 +44,16 @@ public abstract class BasicCRUDCommandsHandler<TApi,TDatabase>
         return _mapper.Map<TApi>(entity);
     }
 
+    public virtual async Task<IEnumerable<TApi>> Handle(ListAllEntitiesQuery<TApi> request, CancellationToken cancellationToken)
+    {
+        return (await Repository.GetAllAsync())
+            .Select(o => _mapper.Map<TApi>(o));
+    }
+
     public virtual async Task<IEnumerable<TApi>> Handle(ListEntitiesQuery<TApi> request, CancellationToken cancellationToken)
     {
-        return (await Repository.GetAllAsync()).Select(o => _mapper.Map<TApi>(o));
+        return (await Repository.GetByIdsAsync(request.Ids.ToArray()))
+            .Select(o => _mapper.Map<TApi>(o));
     }
 
     public virtual async Task Handle(UpdateEntityCommand<TApi> request, CancellationToken cancellationToken)

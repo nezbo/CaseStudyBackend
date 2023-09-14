@@ -45,7 +45,6 @@ namespace AssetAPI
 
             app.UseAuthorization();
 
-
             app.MapControllers();
 
             app.ApplyDatabaseMigrations<ApiDbContext>();

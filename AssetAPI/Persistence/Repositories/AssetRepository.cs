@@ -11,6 +11,13 @@ public class AssetRepository : GenericRepository<Asset>, IAssetRepository
     {
     }
 
+    public async Task<IEnumerable<Asset>> GetByIdsAsync(params Guid[] ids)
+    {
+        return await DbSet
+            .Where(a => ids.Contains(a.Id))
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<Asset>> GetValidOnAsync(DateOnly validOn)
     {
         return await DbSet.Where(a =>

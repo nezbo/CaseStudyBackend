@@ -1,4 +1,5 @@
-﻿using AssetAPI.Features.Assets.ListAssetsValidOn;
+﻿using AssetAPI.Features.Assets.ListAssets;
+using AssetAPI.Features.Assets.ListAssetsValidOn;
 using AssetAPI.Models.Api;
 using MediatR;
 using Microservice.Common.Controllers;
@@ -15,16 +16,10 @@ namespace AssetAPI.Controllers
             _mediator = mediator;
         }
 
-        [NonAction]
-        public override Task<IEnumerable<AssetDto>> List() { return null; }
-
-        [HttpGet]
-        public async Task<IEnumerable<AssetDto>> List([FromQuery]DateOnly? validOn)
+        [HttpGet("ValidOn")]
+        public async Task<IEnumerable<AssetDto>> List([FromQuery]DateOnly? date)
         {
-            if (!validOn.HasValue)
-                return await base.List();
-
-            return await _mediator.Send(new ListAssetsValidOnQuery(validOn.Value));
+            return await _mediator.Send(new ListAssetsValidOnQuery(date.Value));
         }
     }
 }

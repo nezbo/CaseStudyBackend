@@ -29,14 +29,21 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class, IIden
         return Task.CompletedTask;
     }
 
-    public Task<IEnumerable<T>> GetAllAsync()
-    {
-        return Task.FromResult(DbSet.AsEnumerable());
-    }
-
     public async Task<T> GetByIdAsync(Guid id)
     {
         return await DbSet.FindAsync(id);
+    }
+
+    public async Task<IEnumerable<T>> GetByIdsAsync(params Guid[] ids)
+    {
+        return await DbSet
+            .Where(o => ids.Contains(o.Id))
+            .ToListAsync();
+    }
+
+    public Task<IEnumerable<T>> GetAllAsync()
+    {
+        return Task.FromResult(DbSet.AsEnumerable());
     }
 
     public Task UpdateAsync(T entity)

@@ -26,9 +26,18 @@ public class CRUDController<TModel> : ControllerBase where TModel : IIdentity
     }
 
     [HttpGet]
-    public virtual async Task<IEnumerable<TModel>> List()
+    public virtual async Task<IEnumerable<TModel>> List([FromQuery] IEnumerable<Guid> ids)
     {
-        var result = await _mediator.Send(new ListEntitiesQuery<TModel>());
+        IEnumerable<TModel>? result;
+        if (!ids.Any())
+        {
+            result = await _mediator.Send(new ListAllEntitiesQuery<TModel>());
+        }
+        else
+        {
+            result = await _mediator.Send(new ListEntitiesQuery<TModel>(ids));
+        }
+
         return result ?? Enumerable.Empty<TModel>();
     }
 
