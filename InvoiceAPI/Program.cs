@@ -1,3 +1,4 @@
+using InvoiceAPI.External;
 using InvoiceAPI.Persistence;
 using InvoiceAPI.Persistence.Repositories;
 using Microservice.Common.Extensions;
@@ -20,6 +21,7 @@ public class Program
         // Add services to the container.
 
         builder.Services.AddBaseDbContext<InvoiceDbContext>();
+        builder.Services.AddHttpClient();
 
         builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
         builder.Services.AddTransient<IGenericUnitOfWork, UnitOfWork>();
@@ -34,6 +36,8 @@ public class Program
 
         builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
         builder.Services.AddMediatR(c => c.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+
+        builder.Services.AddTransient<IAssetService, AssetService>();
 
         var app = builder.Build();
 

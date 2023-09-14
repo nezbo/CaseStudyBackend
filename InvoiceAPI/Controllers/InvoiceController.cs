@@ -1,8 +1,8 @@
-﻿using InvoiceAPI.Features.Services.ListByInvoiceId;
+﻿using InvoiceAPI.Features.Invoices.CreateByAssets;
+using InvoiceAPI.Features.Services.ListByInvoiceId;
 using InvoiceAPI.Models.Api;
 using MediatR;
 using Microservice.Common.Controllers;
-using Microservice.Common.Features;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InvoiceAPI.Controllers
@@ -21,6 +21,13 @@ namespace InvoiceAPI.Controllers
         {
             var result = await _mediator.Send(new ListServicesByInvoiceIdQuery(id));
             return result ?? Enumerable.Empty<ServiceDto>();
+        }
+
+        [HttpPost("ByAssets")]
+        public virtual async Task<InvoiceDto?> CreateByAssets([FromBody] InvoiceDto invoice, [FromQuery] IEnumerable<Guid> assetIds)
+        {
+            var result = await _mediator.Send(new CreateByAssetsCommand { Data = invoice, AssetIds = assetIds});
+            return await Read(result);
         }
     }
 }

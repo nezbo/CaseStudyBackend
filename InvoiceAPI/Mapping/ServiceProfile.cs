@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using InvoiceAPI.External.Models;
 using InvoiceAPI.Models.Api;
 using InvoiceAPI.Models.Database;
 
@@ -10,5 +11,7 @@ public class ServiceProfile : Profile
     {
         CreateMap<Service, ServiceDto>();
         CreateMap<ServiceDto, Service>();
+
+        CreateMap<AssetDto, ServiceDto>();
     }
 }

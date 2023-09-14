@@ -19,7 +19,7 @@ public class CRUDController<TModel> : ControllerBase where TModel : IIdentity
     }
 
     [HttpPost]
-    public virtual async Task<TModel> Create([FromBody] TModel model)
+    public virtual async Task<TModel?> Create([FromBody] TModel model)
     {
         Guid id = await _mediator.Send(new CreateEntityCommand<TModel>(model));
         return await Read(id);
@@ -42,7 +42,7 @@ public class CRUDController<TModel> : ControllerBase where TModel : IIdentity
     }
 
     [HttpGet("{id}")]
-    public virtual async Task<TModel> Read(Guid id)
+    public virtual async Task<TModel?> Read(Guid id)
     {
         var result = await _mediator.Send(new GetEntityQuery<TModel>(id));
 
@@ -53,7 +53,7 @@ public class CRUDController<TModel> : ControllerBase where TModel : IIdentity
     }
 
     [HttpPut("{id}")]
-    public virtual async Task<TModel> Update(Guid id, [FromBody] TModel model)
+    public virtual async Task<TModel?> Update(Guid id, [FromBody] TModel model)
     {
         model.Id = id;
 
