@@ -1,39 +1,47 @@
 ﻿using InvoiceAPI.External.Models;
+using Microservice.Common.Extensions;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Options;
+using RestSharp;
+using RestSharp.Serializers;
+using RestSharp.Serializers.Json;
 using System.Text.Json;
 
 namespace InvoiceAPI.External;
 
 public class AssetService : IAssetService
 {
-    private readonly string _rootUrl;
-    private readonly HttpClient _httpClient;
-    private readonly JsonSerializerOptions _jsonOptions;
+    private RestClient _restClient;
 
     public AssetService(IConfiguration configuration, IHttpClientFactory httpClientFactory, IOptions<JsonOptions> jsonOptions)
     {
-        _rootUrl = configuration["ASSET_API_URL"];
-        _httpClient = httpClientFactory.CreateClient();
-        _jsonOptions = jsonOptions.Value.SerializerOptions;
+        var baseUrl = configuration["ASSET_API_URL"];
+        var httpClient = httpClientFactory.CreateClient();
+        var serializerOptions = jsonOptions.Value.SerializerOptions;
+
+        var restOptions = new RestClientOptions(baseUrl);
+        _restClient = new RestClient(httpClient, 
+            restOptions, 
+            configureSerialization: s => s.UseSystemTextJson(serializerOptions));
     }
 
     public async Task<AssetDto?> GetAssetAsync(Guid id)
     {
-        return await _httpClient.GetFromJsonAsync<AssetDto>($"{_rootUrl}/api/v1/asset/{id}", _jsonOptions);
+        return await _restClient.GetJsonAsync<AssetDto>("api/v1/asset/{id}", new { id });
     }
 
     public async Task<IEnumerable<AssetDto>> GetAssetsAsync()
     {
-        return await _httpClient.GetFromJsonAsync<IEnumerable<AssetDto>>($"{_rootUrl}/api/v1/asset", _jsonOptions) 
+        return await _restClient.GetJsonAsync<IEnumerable<AssetDto>>("api/v1/asset")
             ?? Enumerable.Empty<AssetDto>();
     }
 
     public async Task<IEnumerable<AssetDto>> GetAssetsAsync(params Guid[] ids)
     {
-        var query = string.Join('&', ids.Select(id => $"ids={id}"));
-        var url = $"{_rootUrl}/api/v1/asset?{query}";
-        return await _httpClient.GetFromJsonAsync<IEnumerable<AssetDto>>(url, _jsonOptions)
+        var request = new RestRequest("api/v1/asset", Method.Get);
+        ids.ForEach(id => request.AddQueryParameter("ids", id.ToString()));
+
+        return await _restClient.GetAsync<IEnumerable<AssetDto>>(request)
             ?? Enumerable.Empty<AssetDto>();
     }
 }
