@@ -1,6 +1,7 @@
 using AssetAPI.Persistence;
 using AssetAPI.Persistence.Repositories;
 using Microservice.Common.Extensions;
+using Microservice.Common.MediatR.Validation;
 using Microservice.Common.Repository;
 using System.Reflection;
 
@@ -30,7 +31,7 @@ namespace AssetAPI
             builder.Services.AddDateOnlyTimeOnlyStringConverters();
 
             builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
-            builder.Services.AddMediatR(c => c.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+            builder.Services.AddMediatRWithValidation(Assembly.GetExecutingAssembly());
 
             var app = builder.Build();
 

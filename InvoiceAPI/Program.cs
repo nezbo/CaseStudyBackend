@@ -2,6 +2,7 @@ using InvoiceAPI.External;
 using InvoiceAPI.Persistence;
 using InvoiceAPI.Persistence.Repositories;
 using Microservice.Common.Extensions;
+using Microservice.Common.MediatR.Validation;
 using Microservice.Common.Repository;
 using System.Reflection;
 
@@ -35,7 +36,7 @@ public class Program
         builder.Services.AddDateOnlyTimeOnlyStringConverters();
 
         builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
-        builder.Services.AddMediatR(c => c.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+        builder.Services.AddMediatRWithValidation(Assembly.GetExecutingAssembly());
 
         builder.Services.AddTransient<IAssetService, AssetService>();
 

@@ -1,5 +1,4 @@
-﻿using AssetAPI.Features.Assets.ListAssets;
-using AssetAPI.Features.Assets.ListAssetsValidOn;
+﻿using AssetAPI.Features.Assets.ListAssetsValidOn;
 using AssetAPI.Models.Api;
 using MediatR;
 using Microservice.Common.Controllers;
@@ -17,9 +16,9 @@ namespace AssetAPI.Controllers
         }
 
         [HttpGet("ValidOn")]
-        public async Task<IEnumerable<AssetDto>> List([FromQuery]DateOnly? date)
+        public async Task<IEnumerable<AssetDto>> List([FromQuery]DateOnly date)
         {
-            return await _mediator.Send(new ListAssetsValidOnQuery(date.Value));
+            return await _mediator.Send(new ListAssetsValidOnQuery(date));
         }
     }
 }

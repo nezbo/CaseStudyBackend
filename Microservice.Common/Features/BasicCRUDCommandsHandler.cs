@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using FluentValidation;
 using MediatR;
 using Microservice.Common.CQRS;
+using Microservice.Common.Features.Validation;
 using Microservice.Common.Models;
 using Microservice.Common.Repository;
 
@@ -52,6 +54,8 @@ public abstract class BasicCRUDCommandsHandler<TApi,TDatabase>
 
     public virtual async Task<IEnumerable<TApi>> Handle(ListEntitiesQuery<TApi> request, CancellationToken cancellationToken)
     {
+        new ListEntitiesValidator<TApi>().ValidateAndThrow(request);
+
         return (await Repository.GetByIdsAsync(request.Ids.ToArray()))
             .Select(o => _mapper.Map<TApi>(o));
     }
