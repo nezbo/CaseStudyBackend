@@ -2,7 +2,7 @@
 using InvoiceAPI.Persistence.Repositories;
 using Microservice.Common.Test;
 
-namespace AssetAPI.Test.Persistence.Repositories;
+namespace InvoiceAPI.Test.Persistence.Repositories;
 
 public class InvoiceRepositoryTests : GenericRepositoryTests<InvoiceRepository, Invoice>
 {
