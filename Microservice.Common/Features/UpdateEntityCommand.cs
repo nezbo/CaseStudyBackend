@@ -6,8 +6,5 @@ public class UpdateEntityCommand<T> : IRequest
 {
     public T Entity { get; set; }
 
-    public UpdateEntityCommand(T entity)
-    {
-        Entity = entity;
-    }
+    public UpdateEntityCommand(T entity) => Entity = entity;
 }
