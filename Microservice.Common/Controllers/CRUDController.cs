@@ -21,10 +21,10 @@ public class CRUDController<TModel> : ControllerBase
     }
 
     [HttpPost]
-    public virtual async Task<TModel?> Create([FromBody] TModel model)
+    public virtual async Task<ActionResult<TModel?>> Create([FromBody] TModel model)
     {
         Guid id = await _mediator.Send(new CreateEntityCommand<TModel>(model));
-        return await Read(id);
+        return CreatedAtAction(nameof(Read), new { id }, await Read(id));
     }
 
     [HttpGet]
