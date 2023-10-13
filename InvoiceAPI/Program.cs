@@ -30,7 +30,8 @@ public class Program
         builder.Services.AddTransient<IInvoiceRepository, InvoiceRepository>();
         builder.Services.AddTransient<IServiceRepository, ServiceRepository>();
 
-        builder.Services.AddControllers();
+        builder.Services.AddControllers()
+            .AddNewtonsoftJson();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         builder.Services.AddDateOnlyTimeOnlyStringConverters();

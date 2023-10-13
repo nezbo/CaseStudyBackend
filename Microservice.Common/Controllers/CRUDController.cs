@@ -2,6 +2,7 @@
 using Microservice.Common.CQRS;
 using Microservice.Common.Features;
 using Microservice.Common.Models;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -9,7 +10,8 @@ namespace Microservice.Common.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-public class CRUDController<TModel> : ControllerBase where TModel : IIdentity
+public class CRUDController<TModel> : ControllerBase 
+    where TModel : class, IIdentity
 {
     private readonly IMediator _mediator;
 
@@ -59,6 +61,21 @@ public class CRUDController<TModel> : ControllerBase where TModel : IIdentity
 
         await _mediator.Send(new UpdateEntityCommand<TModel>(model));
         return await Read(model.Id);
+    }
+
+    [HttpPatch("{id}")]
+    public virtual async Task<ActionResult<TModel?>> Patch(Guid id, [FromBody] JsonPatchDocument<TModel> patchDoc)
+    {
+        if (patchDoc != null && ModelState.IsValid)
+        {
+            await _mediator.Send(new PatchEntityCommand<TModel>(id, patchDoc));
+
+            return await Read(id);
+        }
+        else
+        {
+            return this.BadRequest();
+        }
     }
 
     [HttpDelete("{id}")]

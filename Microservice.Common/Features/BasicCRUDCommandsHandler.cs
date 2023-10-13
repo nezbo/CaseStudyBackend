@@ -14,17 +14,20 @@ public abstract class BasicCRUDCommandsHandler<TApi,TDatabase>
       IRequestHandler<ListAllEntitiesQuery<TApi>, IEnumerable<TApi>>,
       IRequestHandler<ListEntitiesQuery<TApi>, IEnumerable<TApi>>,
       IRequestHandler<UpdateEntityCommand<TApi>>,
+      IRequestHandler<PatchEntityCommand<TApi>>,
       IRequestHandler<DeleteEntityCommand<TApi>, bool>
-    where TApi : IIdentity
+    where TApi : class, IIdentity
     where TDatabase : class, IIdentity
 {
+    private readonly IMediator _mediator;
     private readonly IGenericUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
     private IGenericRepository<TDatabase> Repository => _unitOfWork.GetRepository<TDatabase>();
 
-    public BasicCRUDCommandsHandler(IGenericUnitOfWork unitOfWork, IMapper mapper)
+    public BasicCRUDCommandsHandler(IMediator mediator, IGenericUnitOfWork unitOfWork, IMapper mapper)
     {
+        _mediator = mediator;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
@@ -62,9 +65,19 @@ public abstract class BasicCRUDCommandsHandler<TApi,TDatabase>
 
     public virtual async Task Handle(UpdateEntityCommand<TApi> request, CancellationToken cancellationToken)
     {
-        TDatabase entity = _mapper.Map<TDatabase>(request.Entity);
+        TDatabase entity = await Repository.GetByIdAsync(request.Entity.Id);
+        _mapper.Map(request.Entity, entity);
         await Repository.UpdateAsync(entity); 
         await _unitOfWork.CommitAsync();
+    }
+
+    public async Task Handle(PatchEntityCommand<TApi> request, CancellationToken cancellationToken)
+    {
+        TApi entity = await _mediator.Send(new GetEntityQuery<TApi>(request.Id), cancellationToken);
+
+        request.Patch.ApplyTo(entity);
+
+        await _mediator.Send(new UpdateEntityCommand<TApi>(entity), cancellationToken);
     }
 
     public virtual async Task<bool> Handle(DeleteEntityCommand<TApi> request, CancellationToken cancellationToken)

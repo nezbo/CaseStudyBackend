@@ -12,7 +12,7 @@ namespace Microservice.Common.Test;
 
 public abstract class BasicCRUDCommandsHandlerTests<THandler, TApi, TDatabase> : BaseTestFixture<THandler>
     where THandler : BasicCRUDCommandsHandler<TApi, TDatabase>
-    where TApi : IIdentity
+    where TApi : class, IIdentity
     where TDatabase : class, IIdentity
 {
     public BasicCRUDCommandsHandlerTests()
