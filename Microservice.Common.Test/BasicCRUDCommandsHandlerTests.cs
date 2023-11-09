@@ -6,7 +6,7 @@ using Microservice.Common.Features;
 using Microservice.Common.Models;
 using Microservice.Common.Repository;
 using Microservice.Common.Test.Core;
-using Moq;
+using NSubstitute;
 
 namespace Microservice.Common.Test;
 
@@ -18,22 +18,22 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TApi, TDatabase> :
     public BasicCRUDCommandsHandlerTests()
     {
         // IGenericUnitOfWork
-        Container.GetMock<IGenericUnitOfWork>()
-            .Setup(u => u.GetRepository<TDatabase>())
-            .Returns(() => Container.GetMock<IGenericRepository<TDatabase>>().Object);
+        Container.Resolve<IGenericUnitOfWork>()
+            .GetRepository<TDatabase>()
+            .Returns(x => Container.Resolve<IGenericRepository<TDatabase>>());
 
         // IGenericRepository
-        Container.GetMock<IGenericRepository<TDatabase>>()
-            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>()))
-            .Returns<Guid>(id => Task.FromResult(InstantiateDbEntity(id)));
+        Container.Resolve<IGenericRepository<TDatabase>>()
+            .GetByIdAsync(Arg.Any<Guid>())
+            .Returns(x => Task.FromResult(InstantiateDbEntity(x.Arg<Guid>())));
 
         // IMapper
-        Container.GetMock<IMapper>()
-            .Setup(m => m.Map<TDatabase>(It.IsAny<TApi>()))
-            .Returns<TApi>(o => InstantiateDbEntity(o.Id));
-        Container.GetMock<IMapper>()
-            .Setup(m => m.Map<TApi>(It.IsAny<TDatabase>()))
-            .Returns<TDatabase>(o => InstantiateApiEntity(o.Id));
+        Container.Resolve<IMapper>()
+            .Map<TDatabase>(Arg.Any<TApi>())
+            .Returns(x => InstantiateDbEntity(x.Arg<TApi>().Id));
+        Container.Resolve<IMapper>()
+            .Map<TApi>(Arg.Any<TDatabase>())
+            .Returns(x => InstantiateApiEntity(x.Arg<TDatabase>().Id));
     }
 
     protected abstract TApi InstantiateApiEntity(Guid id);
@@ -52,8 +52,8 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TApi, TDatabase> :
         // Assert
         id.Should().NotBeEmpty();
 
-        Container.Verify<IGenericRepository<TDatabase>>(r => r.AddAsync(It.Is<TDatabase>(d => d.Id == id)), Times.Once);
-        Container.Verify<IGenericUnitOfWork>(u => u.CommitAsync(), Times.Once);
+        await Container.Resolve<IGenericRepository<TDatabase>>().Received(1).AddAsync(Arg.Is<TDatabase>(d => d.Id == id));
+        await Container.Resolve<IGenericUnitOfWork>().Received(1).CommitAsync();
     }
 
     [Fact]
@@ -69,8 +69,8 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TApi, TDatabase> :
         entity.Should().NotBeNull();
         entity.Id.Should().Be(id);
 
-        Container.Verify<IGenericRepository<TDatabase>>(r => r.GetByIdAsync(id), Times.Once);
-        Container.Verify<IGenericRepository<TDatabase>>(r => r.GetByIdAsync(It.Is<Guid>(i => i != id)), Times.Never);
+        await Container.Resolve<IGenericRepository<TDatabase>>().Received(1).GetByIdAsync(id);
+        await Container.Resolve<IGenericRepository<TDatabase>>().Received(0).GetByIdAsync(Arg.Is<Guid>(i => i != id));
     }
 
     [Fact]
@@ -82,9 +82,9 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TApi, TDatabase> :
             InstantiateDbEntity(Guid.NewGuid()),
             InstantiateDbEntity(Guid.NewGuid()),
         };
-        Container.GetMock<IGenericRepository<TDatabase>>()
-            .Setup(r => r.GetAllAsync())
-            .ReturnsAsync(entities);
+        Container.Resolve<IGenericRepository<TDatabase>>()
+            .GetAllAsync()
+            .Returns(entities);
 
         // Act
         IEnumerable<TApi> result = await Sut.Handle(new ListAllEntitiesQuery<TApi>(), CancellationToken.None);
@@ -93,7 +93,7 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TApi, TDatabase> :
         entities.Should().NotBeEmpty();
         entities.Should().HaveCount(2);
 
-        Container.Verify<IGenericRepository<TDatabase>>(r => r.GetAllAsync(), Times.Once);
+        await Container.Resolve<IGenericRepository<TDatabase>>().Received(1).GetAllAsync();
     }
 
     [Fact]
@@ -105,9 +105,9 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TApi, TDatabase> :
             InstantiateDbEntity(Guid.NewGuid()),
             InstantiateDbEntity(Guid.NewGuid()),
         };
-        Container.GetMock<IGenericRepository<TDatabase>>()
-            .Setup(r => r.GetByIdsAsync(It.IsAny<Guid[]>()))
-            .Returns<Guid[]>(ids => Task.FromResult(entities.Where(e => ids.Contains(e.Id))));
+        Container.Resolve<IGenericRepository<TDatabase>>()
+            .GetByIdsAsync(Arg.Any<Guid[]>())
+            .Returns(x => entities.Where(e => x.Arg<Guid[]>().Contains(e.Id)));
 
         // Act
         var query = entities.Select(e => e.Id).Append(Guid.NewGuid()).ToArray();
@@ -137,8 +137,8 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TApi, TDatabase> :
         await Sut.Handle(command, CancellationToken.None);
 
         // Assert
-        Container.Verify<IGenericRepository<TDatabase>>(r => r.UpdateAsync(It.Is<TDatabase>(d => d.Id == id)), Times.Once);
-        Container.Verify<IGenericUnitOfWork>(u => u.CommitAsync(), Times.Once);
+        await Container.Resolve<IGenericRepository<TDatabase>>().Received(1).UpdateAsync(Arg.Is<TDatabase>(d => d.Id == id));
+        await Container.Resolve<IGenericUnitOfWork>().Received(1).CommitAsync();
     }
 
     [Fact]
@@ -152,7 +152,7 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TApi, TDatabase> :
         await Sut.Handle(command, CancellationToken.None);
 
         // Assert
-        Container.Verify<IGenericRepository<TDatabase>>(r => r.DeleteAsync(id), Times.Once);
-        Container.Verify<IGenericUnitOfWork>(u => u.CommitAsync(), Times.Once);
+        await Container.Resolve<IGenericRepository<TDatabase>>().Received(1).DeleteAsync(id);
+        await Container.Resolve<IGenericUnitOfWork>().Received(1).CommitAsync();
     }
 }

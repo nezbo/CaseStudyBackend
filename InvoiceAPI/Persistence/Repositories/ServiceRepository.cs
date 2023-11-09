@@ -1,7 +1,6 @@
 ﻿using InvoiceAPI.Models.Database;
 using Microservice.Common.EntityFrameworkCore;
 using Microservice.Common.Repository;
-using Microsoft.EntityFrameworkCore;
 
 namespace InvoiceAPI.Persistence.Repositories;
 
@@ -11,10 +10,13 @@ public class ServiceRepository : GenericRepository<Service>, IServiceRepository
     {
     }
 
-    public async Task<IEnumerable<Service>> GetByInvoiceIdAsync(Guid invoiceId)
+    public Task<IEnumerable<Service>> GetByInvoiceIdAsync(Guid invoiceId)
     {
-        return await DbSet
+        var query = () => DbSet
             .Where(s => s.InvoiceId == invoiceId)
-            .ToListAsync();
+            .ToList()
+            .AsEnumerable();
+
+        return Task.Run(query);
     }
 }

@@ -4,8 +4,8 @@ using Microservice.Common.Models;
 using Microservice.Common.Repository;
 using Microservice.Common.Test.Core;
 using Microsoft.EntityFrameworkCore;
-using MockQueryable.Moq;
-using Moq;
+using NSubstitute;
+using NSubstitute.ReceivedExtensions;
 
 namespace Microservice.Common.Test;
 
@@ -34,18 +34,18 @@ public abstract class GenericRepositoryTests<TRepository,TEntity> : BaseTestFixt
 
     protected virtual void SetupDbContextSet(IEnumerable<TEntity> entities)
     {
-        var mock = entities.AsQueryable().BuildMockDbSet();
-        mock.Setup(x => x.FindAsync(It.IsAny<object[]>()))
-            .ReturnsAsync((object[] ids) =>
+        var mock = BuildMockDbSet(entities);
+        mock.FindAsync(Arg.Any<object[]>())
+            .Returns(x =>
             {
-                var id = (Guid)ids[0];
+                var id = (Guid)x.Arg<object[]>()[0];
                 return entities.FirstOrDefault(x => x.Id == id);
             });
-        Container.Use(mock);
+        Builder.Provide(mock);
 
-        Container.GetMock<IBaseDbContext>()
-            .Setup(x => x.GetSet<TEntity>())
-            .Returns(() => Container.Get<DbSet<TEntity>>());
+        Container.Resolve<IBaseDbContext>()
+            .GetSet<TEntity>()
+            .Returns(x => Container.Resolve<DbSet<TEntity>>());
     }
 
     [Theory]
@@ -88,9 +88,9 @@ public abstract class GenericRepositoryTests<TRepository,TEntity> : BaseTestFixt
 
         await Sut.AddAsync(newEntity);
 
-        Container.Verify<DbSet<TEntity>>(s =>
-                s.AddAsync(It.Is<TEntity>(e => e == newEntity), It.IsAny<CancellationToken>()).Result,
-            Times.Once);
+        await Container.Resolve<DbSet<TEntity>>()
+            .Received(1)
+            .AddAsync(Arg.Is<TEntity>(e => e == newEntity), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -101,8 +101,9 @@ public abstract class GenericRepositoryTests<TRepository,TEntity> : BaseTestFixt
 
         await Sut.UpdateAsync(updatedEntity);
 
-        Container.Verify<DbSet<TEntity>>(s =>
-            s.Update(It.Is<TEntity>(e => e == updatedEntity)), Times.Once);
+        Container.Resolve<DbSet<TEntity>>()
+            .Received(1)
+            .Update(Arg.Is<TEntity>(e => e == updatedEntity));
     }
 
     [Fact]
@@ -113,8 +114,9 @@ public abstract class GenericRepositoryTests<TRepository,TEntity> : BaseTestFixt
 
         await Sut.UpdateAsync(updatedEntity);
 
-        Container.Verify<DbSet<TEntity>>(s =>
-            s.Update(It.Is<TEntity>(e => e == updatedEntity)), Times.Never);
+        Container.Resolve<DbSet<TEntity>>()
+            .DidNotReceiveWithAnyArgs()
+            .Update(Arg.Is<TEntity>(e => e == updatedEntity));
     }
 
     [Theory]
@@ -128,17 +130,32 @@ public abstract class GenericRepositoryTests<TRepository,TEntity> : BaseTestFixt
         
         await Sut.DeleteAsync(id);
 
-        Container.Verify<DbSet<TEntity>>(s =>
-            s.Remove(It.Is<TEntity>(e => e.Id == id)), Times.Once);
+        Container.Resolve<DbSet<TEntity>>()
+            .Received(1)
+            .Remove(Arg.Is<TEntity>(e => e.Id == id));
     }
 
-    private Guid GetGuid(int digit)
+    private static DbSet<TEntity> BuildMockDbSet(IEnumerable<TEntity> entities)
+    {
+        var data = entities.AsQueryable();
+        var mockSet = Substitute.For<DbSet<TEntity>, IQueryable<TEntity>>();
+
+        // And then as you do:
+        ((IQueryable<TEntity>)mockSet).Provider.Returns(data.Provider);
+        ((IQueryable<TEntity>)mockSet).Expression.Returns(data.Expression);
+        ((IQueryable<TEntity>)mockSet).ElementType.Returns(data.ElementType);
+        ((IQueryable<TEntity>)mockSet).GetEnumerator().Returns(data.GetEnumerator());
+
+        return mockSet;
+    }
+
+    private static Guid GetGuid(int digit)
     {
         char c = digit.ToString()[0];
         return new Guid($"{GetTimes(c,8)}-{GetTimes(c, 4)}-{GetTimes(c, 4)}-{GetTimes(c, 4)}-{GetTimes(c, 12)}");
     }
 
-    private string GetTimes(char digit, int count)
+    private static string GetTimes(char digit, int count)
     {
         return new string(digit, count);
     }
