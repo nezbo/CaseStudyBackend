@@ -15,7 +15,7 @@ public class AssetService : IAssetService
 
     public AssetService(IConfiguration configuration, IHttpClientFactory httpClientFactory, IOptions<JsonOptions> jsonOptions)
     {
-        var baseUrl = configuration["ASSET_API_URL"];
+        var baseUrl = configuration["ASSET_API_URL"] ?? throw new ArgumentNullException(nameof(configuration));
         var httpClient = httpClientFactory.CreateClient();
         var serializerOptions = jsonOptions.Value.SerializerOptions;
 

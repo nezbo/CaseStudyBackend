@@ -25,7 +25,7 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TApi, TDatabase> :
         // IGenericRepository
         Container.Resolve<IGenericRepository<TDatabase>>()
             .GetByIdAsync(Arg.Any<Guid>())
-            .Returns(x => Task.FromResult(InstantiateDbEntity(x.Arg<Guid>())));
+            .Returns(x => Task.FromResult<TDatabase?>(InstantiateDbEntity(x.Arg<Guid>())));
 
         // IMapper
         Container.Resolve<IMapper>()

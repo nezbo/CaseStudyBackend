@@ -12,7 +12,7 @@ public class UnitOfWork : GenericUnitOfWork, IUnitOfWork
         _services = services;
     }
 
-    public IInvoiceRepository InvoiceRepository => _services.GetService<IInvoiceRepository>();
+    public IInvoiceRepository InvoiceRepository => _services.GetService<IInvoiceRepository>()!;
 
-    public IServiceRepository ServiceRepository => _services.GetService<IServiceRepository>();
+    public IServiceRepository ServiceRepository => _services.GetService<IServiceRepository>()!;
 }

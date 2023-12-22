@@ -106,19 +106,6 @@ public abstract class GenericRepositoryTests<TRepository,TEntity> : BaseTestFixt
             .Update(Arg.Is<TEntity>(e => e == updatedEntity));
     }
 
-    [Fact]
-    public async Task UpdateAsync_Should_Not_Call_DbSet_When_Null()
-    {
-        var entities = SetupDbContextSet(2);
-        TEntity updatedEntity = null;
-
-        await Sut.UpdateAsync(updatedEntity);
-
-        Container.Resolve<DbSet<TEntity>>()
-            .DidNotReceiveWithAnyArgs()
-            .Update(Arg.Is<TEntity>(e => e == updatedEntity));
-    }
-
     [Theory]
     [InlineData(0)]
     [InlineData(1)]

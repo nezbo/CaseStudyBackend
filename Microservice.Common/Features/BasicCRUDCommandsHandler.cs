@@ -23,7 +23,7 @@ public abstract class BasicCRUDCommandsHandler<TApi,TDatabase>
     private readonly IGenericUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    private IGenericRepository<TDatabase> Repository => _unitOfWork.GetRepository<TDatabase>();
+    private IGenericRepository<TDatabase> Repository => _unitOfWork.GetRepository<TDatabase>()!;
 
     public BasicCRUDCommandsHandler(IMediator mediator, IGenericUnitOfWork unitOfWork, IMapper mapper)
     {
@@ -45,7 +45,7 @@ public abstract class BasicCRUDCommandsHandler<TApi,TDatabase>
 
     public virtual async Task<TApi> Handle(GetEntityQuery<TApi> request, CancellationToken cancellationToken)
     {
-        TDatabase entity = await Repository.GetByIdAsync(request.Id);
+        TDatabase? entity = await Repository.GetByIdAsync(request.Id);
         return _mapper.Map<TApi>(entity);
     }
 
@@ -65,10 +65,14 @@ public abstract class BasicCRUDCommandsHandler<TApi,TDatabase>
 
     public virtual async Task Handle(UpdateEntityCommand<TApi> request, CancellationToken cancellationToken)
     {
-        TDatabase entity = await Repository.GetByIdAsync(request.Entity.Id);
-        _mapper.Map(request.Entity, entity);
-        await Repository.UpdateAsync(entity); 
-        await _unitOfWork.CommitAsync();
+        TDatabase? entity = await Repository.GetByIdAsync(request.Entity.Id);
+
+        if(entity != null)
+        {
+            _mapper.Map(request.Entity, entity);
+            await Repository.UpdateAsync(entity);
+            await _unitOfWork.CommitAsync();
+        }
     }
 
     public async Task Handle(PatchEntityCommand<TApi> request, CancellationToken cancellationToken)

@@ -10,7 +10,7 @@ public class AssetRepository : GenericRepository<Asset>, IAssetRepository
     {
     }
 
-    public Task<IEnumerable<Asset>> GetByIdsAsync(params Guid[] ids)
+    public new Task<IEnumerable<Asset>> GetByIdsAsync(params Guid[] ids)
     {
         var query = () => DbSet
             .Where(a => ids.Contains(a.Id))

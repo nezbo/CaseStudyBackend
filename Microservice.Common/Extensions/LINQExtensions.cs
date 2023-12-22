@@ -9,9 +9,9 @@ public static class LINQExtensions
         return enumeration.Select(i => { action(i); return i; }).ToList();
     }
 
-    public static async Task<IEnumerable<T>> ForEachAsync<T>(this IEnumerable<T> enumeration, Func<T, Task> action)
+    public static Task<IEnumerable<T>> ForEachAsync<T>(this IEnumerable<T> enumeration, Func<T, Task> action)
     {
-        return enumeration.ForEach(async t => await action(t));
+        return Task.FromResult(enumeration.ForEach(async t => await action(t)));
     }
 
     #endregion

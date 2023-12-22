@@ -2,6 +2,7 @@
 using AssetAPI.Models.Api;
 using MediatR;
 using Microservice.Common.Controllers;
+using Microservice.Common.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AssetAPI.Controllers
@@ -18,7 +19,8 @@ namespace AssetAPI.Controllers
         [HttpGet("ValidOn")]
         public async Task<IEnumerable<AssetDto>> List([FromQuery]DateOnly date)
         {
-            return await _mediator.Send(new ListAssetsValidOnQuery(date));
+            return (await _mediator.Send(new ListAssetsValidOnQuery(date)))
+                .ForEach(TrySetEditUrl);
         }
     }
 }

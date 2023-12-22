@@ -13,6 +13,7 @@ public class ServiceCRUDCommandsHandlerTests : BasicCRUDCommandsHandlerTests<Ser
         {
             Id = id,
             Name = $"Service {id}",
+            Price = 13.37M,
         };
     }
 
@@ -22,6 +23,7 @@ public class ServiceCRUDCommandsHandlerTests : BasicCRUDCommandsHandlerTests<Ser
         {
             Id = id,
             Name = $"Service {id}",
+            Price = 13.37M,
         };
     }
 }

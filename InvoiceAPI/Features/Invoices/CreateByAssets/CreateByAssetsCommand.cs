@@ -5,6 +5,6 @@ namespace InvoiceAPI.Features.Invoices.CreateByAssets;
 
 public class CreateByAssetsCommand : IRequest<Guid>
 {
-    public InvoiceDto Data { get; set; }
-    public IEnumerable<Guid> AssetIds { get; set; }
+    public required InvoiceDto Data { get; set; }
+    public required IEnumerable<Guid> AssetIds { get; set; }
 }

@@ -13,6 +13,7 @@ public class AssetCRUDCommandsHandlerTests : BasicCRUDCommandsHandlerTests<Asset
         {
             Id = id,
             Name = $"Asset {id}",
+            Price = 13.37M,
         };
     }
 
@@ -22,6 +23,7 @@ public class AssetCRUDCommandsHandlerTests : BasicCRUDCommandsHandlerTests<Asset
         {
             Id = id,
             Name = $"Asset {id}",
+            Price = 13.37M,
         };
     }
 }

@@ -3,6 +3,7 @@ using InvoiceAPI.Features.Services.ListByInvoiceId;
 using InvoiceAPI.Models.Api;
 using MediatR;
 using Microservice.Common.Controllers;
+using Microservice.Common.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InvoiceAPI.Controllers
@@ -20,7 +21,8 @@ namespace InvoiceAPI.Controllers
         public virtual async Task<IEnumerable<ServiceDto>> ServicesByInvoiceId(Guid id)
         {
             var result = await _mediator.Send(new ListServicesByInvoiceIdQuery(id));
-            return result ?? Enumerable.Empty<ServiceDto>();
+            return (result ?? Enumerable.Empty<ServiceDto>())
+                .ForEach(TrySetEditUrl);
         }
 
         [HttpPost("ByAssets")]

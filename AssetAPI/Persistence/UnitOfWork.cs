@@ -12,5 +12,5 @@ public class UnitOfWork : GenericUnitOfWork, IUnitOfWork
         _services = services;
     }
 
-    public IAssetRepository AssetRepository => _services.GetService<IAssetRepository>();
+    public IAssetRepository AssetRepository => _services.GetService<IAssetRepository>()!;
 }
