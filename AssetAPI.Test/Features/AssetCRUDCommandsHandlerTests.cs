@@ -1,6 +1,6 @@
-﻿using AssetAPI.Features.Assets;
-using AssetAPI.Models.Api;
-using AssetAPI.Models.Database;
+﻿using AssetAPI.Application.Features.Assets;
+using AssetAPI.Domain.Models;
+using AssetAPI.Presentation.Models;
 using Microservice.Common.Test;
 
 namespace AssetAPI.Test.Features;

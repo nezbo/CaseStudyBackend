@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
-using Microservice.Common.EntityFrameworkCore;
-using Microservice.Common.Models;
-using Microservice.Common.Repository;
+using Microservice.Common.Application.Repository;
+using Microservice.Common.Domain.Models;
+using Microservice.Common.Infrastructure.EntityFrameworkCore;
 using Microservice.Common.Test.Core;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;

@@ -1,8 +1,10 @@
-using AssetAPI.Persistence;
-using AssetAPI.Persistence.Repositories;
-using Microservice.Common.Extensions;
-using Microservice.Common.MediatR.Validation;
-using Microservice.Common.Repository;
+using AssetAPI.Application.Repository;
+using AssetAPI.Infrastructure.Persistence;
+using AssetAPI.Infrastructure.Persistence.Repository;
+using Microservice.Common.Application.Extensions;
+using Microservice.Common.Application.Repository;
+using Microservice.Common.Infrastructure.MediatR.Validation;
+using Microservice.Common.Infrastructure.Repository;
 using System.Reflection;
 
 namespace AssetAPI

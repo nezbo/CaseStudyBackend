@@ -1,9 +1,12 @@
-using InvoiceAPI.External;
-using InvoiceAPI.Persistence;
-using InvoiceAPI.Persistence.Repositories;
-using Microservice.Common.Extensions;
-using Microservice.Common.MediatR.Validation;
-using Microservice.Common.Repository;
+using InvoiceAPI.Application.External;
+using InvoiceAPI.Application.Repository;
+using InvoiceAPI.Infrastructure.External;
+using InvoiceAPI.Infrastructure.Persistence;
+using InvoiceAPI.Infrastructure.Persistence.Repository;
+using Microservice.Common.Application.Extensions;
+using Microservice.Common.Application.Repository;
+using Microservice.Common.Infrastructure.MediatR.Validation;
+using Microservice.Common.Infrastructure.Repository;
 using System.Reflection;
 
 namespace InvoiceAPI;

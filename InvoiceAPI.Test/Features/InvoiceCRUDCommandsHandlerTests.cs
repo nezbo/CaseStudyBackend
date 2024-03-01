@@ -1,6 +1,6 @@
-﻿using InvoiceAPI.Features.Invoices;
-using InvoiceAPI.Models.Api;
-using InvoiceAPI.Models.Database;
+﻿using InvoiceAPI.Application.Features.Invoices;
+using InvoiceAPI.Domain.Models;
+using InvoiceAPI.Presentation.Models;
 using Microservice.Common.Test;
 
 namespace InvoiceAPI.Test.Features;

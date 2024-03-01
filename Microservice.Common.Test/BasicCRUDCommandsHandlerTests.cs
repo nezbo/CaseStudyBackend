@@ -1,10 +1,9 @@
 ﻿using AutoMapper;
 using FluentAssertions;
 using FluentValidation;
-using Microservice.Common.CQRS;
-using Microservice.Common.Features;
-using Microservice.Common.Models;
-using Microservice.Common.Repository;
+using Microservice.Common.Application.Features;
+using Microservice.Common.Application.Repository;
+using Microservice.Common.Domain.Models;
 using Microservice.Common.Test.Core;
 using NSubstitute;
 
