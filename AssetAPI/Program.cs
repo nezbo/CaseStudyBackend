@@ -27,6 +27,7 @@ namespace AssetAPI
             builder.Services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddTransient<IAssetRepository, AssetRepository>();
 
+            builder.Services.AddProblemDetails();
             builder.Services.AddControllers()
                 .AddNewtonsoftJson();
             builder.Services.AddEndpointsApiExplorer();
