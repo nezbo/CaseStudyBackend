@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Reflection;
@@ -8,10 +9,8 @@ using System.Reflection;
 namespace Microservice.Common.Application.OpenTelemetry.Extensions;
 public static class WebApplicationBuilderExtensions
 {
-    public static WebApplicationBuilder AddOpenTelemetry(this WebApplicationBuilder builder, string? serviceName = null)
+    public static WebApplicationBuilder AddOpenTelemetry(this WebApplicationBuilder builder, string serviceName, string otlpEndpointUrl)
     {
-        serviceName ??= Assembly.GetExecutingAssembly().FullName!;
-
         builder.Services.AddOpenTelemetry()
             .ConfigureResource(resource =>
             {
@@ -24,7 +23,16 @@ public static class WebApplicationBuilderExtensions
                     .AddEntityFrameworkCoreInstrumentation()
                     .AddOtlpExporter(options =>
                     {
-                        options.Endpoint = new Uri(builder.Configuration.GetValue<string>("OTLP_Endpoint")!);
+                        options.Endpoint = new Uri(otlpEndpointUrl);
+                    });
+            })
+            .WithMetrics(metrics =>
+            {
+                metrics.AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddOtlpExporter(options =>
+                    {
+                        options.Endpoint = new Uri(otlpEndpointUrl);
                     });
             });
 

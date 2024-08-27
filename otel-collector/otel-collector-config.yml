@@ -22,6 +22,8 @@ exporters:
     endpoint: "${JAEGER_ENDPOINT}"
     tls:
       insecure: true
+  prometheus:
+    endpoint: "0.0.0.0:8889"
 
 service:
   pipelines:
@@ -32,6 +34,13 @@ service:
       exporters:
         - debug
         - otlp/jaeger
+    metrics:
+      receivers:
+        - otlp
+      processors: [memory_limiter, batch]
+      exporters:
+        - debug
+        - prometheus
   extensions:
     - health_check
     - zpages 
