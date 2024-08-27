@@ -35,6 +35,12 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
 
+  loki:
+    image: grafana/loki:2.7.1
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
   grafana:
     image: grafana/grafana:10.4.4
     volumes:
@@ -61,3 +67,4 @@ services:
     depends_on:
       - jaeger
       - prometheus
+      - loki
