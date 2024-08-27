@@ -4,6 +4,7 @@ using InvoiceAPI.Infrastructure.External;
 using InvoiceAPI.Infrastructure.Persistence;
 using InvoiceAPI.Infrastructure.Persistence.Repository;
 using Microservice.Common.Application.Extensions;
+using Microservice.Common.Application.OpenTelemetry.Extensions;
 using Microservice.Common.Application.Repository;
 using Microservice.Common.Infrastructure.MediatR.Validation;
 using Microservice.Common.Infrastructure.Repository;
@@ -16,6 +17,7 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        builder.AddOpenTelemetry(typeof(Program).Namespace);
 
         builder.Configuration
             .SetBasePath(Directory.GetCurrentDirectory())

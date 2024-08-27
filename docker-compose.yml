@@ -3,15 +3,40 @@ version: '3.4'
 services:
   assetapi:
     image: ${DOCKER_REGISTRY-}assetapi
+    restart: always
     build:
       context: .
       dockerfile: AssetAPI/Dockerfile
+    environment:
+      OTLP_Endpoint: http://otel-collector:4317
 
   invoiceapi:
     image: ${DOCKER_REGISTRY-}invoiceapi
+    restart: always
     build:
       context: .
       dockerfile: InvoiceAPI/Dockerfile
     environment:
-      - ASSET_API_URL=http://assetapi:80
+      OTLP_Endpoint: http://otel-collector:4317
+      ASSET_API_URL: http://assetapi:80
 
+  # Monitoring
+  jaeger:
+    image: jaegertracing/all-in-one:1.58.0
+    ports:
+      - "16686:16686" # Jaeger Web UI
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.103.0
+    volumes:
+      - ./otel-collector/otel-collector-config.yml:/etc/otel/config.yaml
+      - ./log:/log/otel
+    command: --config /etc/otel/config.yaml
+    environment:
+      JAEGER_ENDPOINT: "jaeger:4317"
+    ports:
+      - "8880:8889"     # Prometheus metrics exporter (endpoint)
+      - "13133:13133"   # Health check extension
+      - "55679:55679"   # ZPages extension
+      - "4317:4317"     # OTLP Receiver
+    depends_on:
+      - jaeger
