@@ -6,6 +6,7 @@ using InvoiceAPI.Presentation.Models;
 using MediatR;
 using Microservice.Common.Application.Extensions;
 using Microservice.Common.Application.Features;
+using MoreLinq;
 
 namespace InvoiceAPI.Application.Features.Invoices.CreateByAssets;
 
@@ -35,8 +36,8 @@ public class CreateByAssetsHandler
         var assets = await _assetService.GetAssetsAsync(request.AssetIds.ToArray());
         var services = _mapper.Map<IEnumerable<Service>>(assets);
         await services
-            .ForEach(s => s.InvoiceId = invoiceId)
-            .ForEachAsync(s => _mediator.Send(new CreateEntityCommand<Service>(s), cancellationToken));
+            .ForEachThen(s => s.InvoiceId = invoiceId)
+            .ForEachThenAsync(s => _mediator.Send(new CreateEntityCommand<Service>(s), cancellationToken));
 
         return invoiceId;
     }

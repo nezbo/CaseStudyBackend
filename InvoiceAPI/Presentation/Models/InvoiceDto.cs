@@ -11,4 +11,6 @@ public record InvoiceDto : IIdentity, IHasEditUrl
     public ushort Month { get; set; }
     public decimal Total { get; set; }
     public string? EditUrl { get; set; }
+
+    public List<ServiceDto> Services { get; set; } = [];
 }

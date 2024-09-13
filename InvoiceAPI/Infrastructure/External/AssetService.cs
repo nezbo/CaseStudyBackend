@@ -3,6 +3,7 @@ using InvoiceAPI.Application.External.Models;
 using Microservice.Common.Application.Extensions;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Options;
+using MoreLinq;
 using RestSharp;
 using RestSharp.Serializers.Json;
 

@@ -7,12 +7,14 @@ using Microservice.Common.Domain.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using System.Reflection;
+using MoreLinq;
 
 namespace Microservice.Common.Presentation.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-public class CRUDController<TModel,TDomain>(IMediator mediator, IMapper mapper) : ControllerBase
+public class CRUDController<TModel, TDomain>(IMediator mediator, IMapper mapper) : ControllerBase
     where TModel : class, IIdentity
     where TDomain : Entity
 {
@@ -43,7 +45,7 @@ public class CRUDController<TModel,TDomain>(IMediator mediator, IMapper mapper) 
             return Problem();
 
         result = mapper.Map<IEnumerable<TModel>>(response.Value);
-        result.ForEach(TrySetEditUrl);
+        result.OfType<IHasEditUrl>().ForEach(SetEditUrl);
 
         return Ok(result);
     }
@@ -60,7 +62,8 @@ public class CRUDController<TModel,TDomain>(IMediator mediator, IMapper mapper) 
         else
         {
             var result = mapper.Map<TModel>(response);
-            TrySetEditUrl(result!);
+            if(result is IHasEditUrl hasUrl)
+                SetEditUrl(hasUrl);
 
             return Ok(result);
         }
@@ -106,11 +109,38 @@ public class CRUDController<TModel,TDomain>(IMediator mediator, IMapper mapper) 
         return NoContent();
     }
 
-    protected void TrySetEditUrl(IIdentity result)
+    protected void SetEditUrl(IHasEditUrl entity)
     {
-        if (result is IHasEditUrl editUrl)
-        {
-            editUrl.EditUrl = Url.ActionLink(action: nameof(Update), values: new { id = result.Id })!;
-        }
+        var controllerName = entity.GetType().Name.TrimEnd("Dto");
+        entity.EditUrl = Url.ActionLink(
+            controller: controllerName,
+            action: nameof(Update), 
+            values: new { id = entity.Id })!;
+
+        // Nested entities
+        GetNestedHasEditUrl(entity).ForEach(SetEditUrl);
+    }
+
+    private static IEnumerable<IHasEditUrl> GetNestedHasEditUrl(object parent)
+    {
+        var direct = parent.GetType()
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty)
+            .Where(p => p.PropertyType.GetInterfaces().Contains(typeof(IHasEditUrl)))
+            .Select(p => p.GetValue(parent) as IHasEditUrl)
+            .Where(v => v != null)
+            .Select(v => v!);
+
+        var sequences = parent.GetType()
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.GetProperty)
+            .Where(p => p.PropertyType.GetInterfaces()
+                .Any(i => i.IsGenericType
+                    && i.GetGenericTypeDefinition() == typeof(IEnumerable<>)
+                    && i.GetGenericArguments().Length == 1
+                    && i.GetGenericArguments()[0].GetInterfaces().Contains(typeof(IHasEditUrl))))
+            .Select(p => p.GetValue(parent) as IEnumerable<IHasEditUrl>)
+            .Where(e => e != null)
+            .SelectMany(e => e!);
+
+        return direct.Union(sequences);
     }
 }

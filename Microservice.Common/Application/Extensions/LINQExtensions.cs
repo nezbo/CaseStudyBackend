@@ -2,16 +2,16 @@
 
 public static class LINQExtensions
 {
-    #region ForEach
+    #region ForEachThen
 
-    public static IEnumerable<T> ForEach<T>(this IEnumerable<T> enumeration, Action<T> action)
+    public static IEnumerable<T> ForEachThen<T>(this IEnumerable<T> enumeration, Action<T> action)
     {
         return enumeration.Select(i => { action(i); return i; }).ToList();
     }
 
-    public static Task<IEnumerable<T>> ForEachAsync<T>(this IEnumerable<T> enumeration, Func<T, Task> action)
+    public static Task<IEnumerable<T>> ForEachThenAsync<T>(this IEnumerable<T> enumeration, Func<T, Task> action)
     {
-        return Task.FromResult(enumeration.ForEach(async t => await action(t)));
+        return Task.FromResult(enumeration.ForEachThen(async t => await action(t)));
     }
 
     #endregion

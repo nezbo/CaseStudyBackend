@@ -21,7 +21,7 @@ namespace InvoiceAPI.Presentation.Controllers
         {
             var result = await _mediator.Send(new ListServicesByInvoiceIdQuery(id));
             return (result ?? [])
-                .ForEach(TrySetEditUrl);
+                .ForEachThen(SetEditUrl);
         }
 
         [HttpPost("ByAssets")]

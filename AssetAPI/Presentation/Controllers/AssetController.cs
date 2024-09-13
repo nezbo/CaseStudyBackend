@@ -18,7 +18,7 @@ namespace AssetAPI.Controllers
         public async Task<IEnumerable<AssetDto>> List([FromQuery]DateOnly date)
         {
             return (await _mediator.Send(new ListAssetsValidOnQuery(date)))
-                .ForEach(TrySetEditUrl);
+                .ForEachThen(SetEditUrl);
         }
     }
 }

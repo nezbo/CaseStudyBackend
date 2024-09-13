@@ -1,6 +1,8 @@
-﻿namespace Microservice.Common.Presentation.Controllers;
+﻿using Microservice.Common.Domain.Models;
 
-public interface IHasEditUrl
+namespace Microservice.Common.Presentation.Controllers;
+
+public interface IHasEditUrl : IIdentity
 {
     public string? EditUrl { get; set; }
 }
