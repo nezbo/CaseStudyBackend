@@ -1,5 +1,7 @@
 ﻿using AssetAPI.Application.Features.Assets.ListAssetsValidOn;
+using AssetAPI.Domain.Models;
 using AssetAPI.Presentation.Models;
+using AutoMapper;
 using MediatR;
 using Microservice.Common.Application.Extensions;
 using Microservice.Common.Presentation.Controllers;
@@ -7,14 +9,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AssetAPI.Controllers
 {
-    public class AssetController : CRUDController<AssetDto>
+    public class AssetController(IMediator mediator, IMapper mapper) 
+        : CRUDController<AssetDto, Asset>(mediator, mapper)
     {
-        private readonly IMediator _mediator;
-
-        public AssetController(IMediator mediator) : base(mediator)
-        {
-            _mediator = mediator;
-        }
+        private readonly IMediator _mediator = mediator;
 
         [HttpGet("ValidOn")]
         public async Task<IEnumerable<AssetDto>> List([FromQuery]DateOnly date)

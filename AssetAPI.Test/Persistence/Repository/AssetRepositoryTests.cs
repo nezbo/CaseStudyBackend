@@ -9,7 +9,7 @@ public class AssetRepositoryTests : GenericRepositoryTests<AssetRepository, Asse
 {
     protected override Asset InstantiateEntity(int entityNumber, Guid id)
     {
-        return new Asset
+        return new Asset(id)
         {
             ValidFrom = entityNumber >= 2 ? GetDate("2020-01-01") : null,
             ValidTo = entityNumber <= 2 ? GetDate("2022-01-01") : null,

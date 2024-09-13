@@ -1,4 +1,6 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using ErrorOr;
+using MediatR;
 using Microservice.Common.Application.Extensions;
 using Microservice.Common.Application.Features;
 using Microservice.Common.Domain.Models;
@@ -10,63 +12,86 @@ namespace Microservice.Common.Presentation.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-public class CRUDController<TModel>(IMediator mediator) : ControllerBase
+public class CRUDController<TModel,TDomain>(IMediator mediator, IMapper mapper) : ControllerBase
     where TModel : class, IIdentity
+    where TDomain : Entity
 {
     [HttpPost]
-    public virtual async Task<ActionResult<TModel?>> Create([FromBody] TModel model)
+    public virtual async Task<IActionResult> Create([FromBody] TModel model)
     {
-        Guid id = await mediator.Send(new CreateEntityCommand<TModel>(model));
-        return CreatedAtAction(nameof(Read), new { id }, await Read(id));
+        var domainModel = mapper.Map<TDomain>(model);
+        var response = await mediator.Send(new CreateEntityCommand<TDomain>(domainModel));
+
+        return response.Match(obj => CreatedAtAction(nameof(Read), new { obj.Id }, obj), e => Problem());
     }
 
     [HttpGet]
-    public virtual async Task<IEnumerable<TModel>> List([FromQuery] IEnumerable<Guid> ids)
+    public virtual async Task<IActionResult> List([FromQuery] IEnumerable<Guid> ids)
     {
         IEnumerable<TModel>? result;
+        ErrorOr<IEnumerable<TDomain>> response;
         if (!ids.Any())
         {
-            result = await mediator.Send(new ListAllEntitiesQuery<TModel>());
+            response = await mediator.Send(new ListAllEntitiesQuery<TDomain>());
         }
         else
         {
-            result = await mediator.Send(new ListEntitiesQuery<TModel>(ids));
+            response = await mediator.Send(new ListEntitiesQuery<TDomain>(ids));
         }
 
-        return (result ?? Enumerable.Empty<TModel>())
-            .ForEach(TrySetEditUrl);
+        if (response.IsError)
+            return Problem();
+
+        result = mapper.Map<IEnumerable<TModel>>(response.Value);
+        result.ForEach(TrySetEditUrl);
+
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
-    public virtual async Task<TModel?> Read(Guid id)
+    public virtual async Task<IActionResult> Read(Guid id)
     {
-        var result = await mediator.Send(new GetEntityQuery<TModel>(id));
+        var response = await mediator.Send(new GetEntityQuery<TDomain>(id));
 
-        if (result == null)
+        if (response.IsError)
+        {
             Response.StatusCode = (int)HttpStatusCode.NotFound;
+        }
+        else
+        {
+            var result = mapper.Map<TModel>(response);
+            TrySetEditUrl(result!);
 
-        TrySetEditUrl(result!);
+            return Ok(result);
+        }
 
-        return result;
+        return Problem();
     }
 
     [HttpPut("{id}")]
-    public virtual async Task<TModel?> Update(Guid id, [FromBody] TModel model)
+    public virtual async Task<IActionResult> Update(Guid id, [FromBody] TModel model)
     {
-        model.Id = id;
-
-        await mediator.Send(new UpdateEntityCommand<TModel>(model));
-        return await Read(model.Id);
+        var domainModel = mapper.Map<TDomain>(model);
+        var response = await mediator.Send(new UpdateEntityCommand<TDomain>(id, domainModel));
+        return response.Match<IActionResult>(u => Ok(), e => Problem());
     }
 
     [HttpPatch("{id}")]
-    public virtual async Task<ActionResult<TModel?>> Patch(Guid id, [FromBody] JsonPatchDocument<TModel> patchDoc)
+    public virtual async Task<IActionResult> Patch(Guid id, [FromBody] JsonPatchDocument<TModel> patchDoc)
     {
         if (patchDoc != null && ModelState.IsValid)
         {
-            await mediator.Send(new PatchEntityCommand<TModel>(id, patchDoc));
+            var domainModel = await mediator.Send(new GetEntityQuery<TDomain>(id));
 
-            return await Read(id);
+            if (domainModel.IsError)
+                return Problem();
+
+            var dto = mapper.Map<TModel>(domainModel);
+            patchDoc.ApplyTo(dto);
+            domainModel = mapper.Map<TDomain>(dto);
+            var response = await mediator.Send(new UpdateEntityCommand<TDomain>(id, domainModel.Value));
+
+            return response.Match<IActionResult>(u => Ok(), e => Problem());
         }
         else
         {

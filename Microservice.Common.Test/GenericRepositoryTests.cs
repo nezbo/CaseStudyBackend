@@ -11,7 +11,7 @@ namespace Microservice.Common.Test;
 
 public abstract class GenericRepositoryTests<TRepository,TEntity> : BaseTestFixture<TRepository> 
     where TRepository : class, IGenericRepository<TEntity>
-    where TEntity : class, IIdentity
+    where TEntity : Entity
 {
     protected abstract TEntity InstantiateEntity(int entityNumber, Guid id);
 
@@ -22,7 +22,6 @@ public abstract class GenericRepositoryTests<TRepository,TEntity> : BaseTestFixt
             {
                 var id = GetGuid(i);
                 var e = InstantiateEntity(i, id);
-                e.Id = id;
                 return e;
             })
             .ToList();
@@ -107,10 +106,10 @@ public abstract class GenericRepositoryTests<TRepository,TEntity> : BaseTestFixt
     }
 
     [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(3)]
-    public async Task DeleteAsync_Should_Handle_Entities_Correctly(int idNumber)
+    [InlineData(0, false)]
+    [InlineData(1, true)]
+    [InlineData(3, false)]
+    public async Task DeleteAsync_Should_Handle_Entities_Correctly(int idNumber, bool shouldCallRemove)
     {
         Guid id = GetGuid(idNumber);
         SetupDbContextSet(2);
@@ -118,7 +117,7 @@ public abstract class GenericRepositoryTests<TRepository,TEntity> : BaseTestFixt
         await Sut.DeleteAsync(id);
 
         Container.Resolve<DbSet<TEntity>>()
-            .Received(1)
+            .Received(shouldCallRemove ? 1 : 0)
             .Remove(Arg.Is<TEntity>(e => e.Id == id));
     }
 

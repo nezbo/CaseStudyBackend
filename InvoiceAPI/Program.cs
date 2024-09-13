@@ -30,8 +30,6 @@ public class Program
         builder.Services.AddBaseDbContext<InvoiceDbContext>();
         builder.Services.AddHttpClient();
 
-        builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
-        builder.Services.AddTransient<IGenericUnitOfWork, UnitOfWork>();
         builder.Services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         builder.Services.AddTransient<IInvoiceRepository, InvoiceRepository>();
         builder.Services.AddTransient<IServiceRepository, ServiceRepository>();

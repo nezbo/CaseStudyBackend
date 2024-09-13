@@ -1,16 +1,11 @@
-﻿using AutoMapper;
-using InvoiceAPI.Domain.Models;
-using InvoiceAPI.Presentation.Models;
+﻿using InvoiceAPI.Domain.Models;
 using MediatR;
 using Microservice.Common.Application.Features;
 using Microservice.Common.Application.Repository;
 
 namespace InvoiceAPI.Application.Features.Services;
 
-public class ServiceCRUDCommandsHandler : BasicCRUDCommandsHandler<ServiceDto, Service>
+public class ServiceCRUDCommandsHandler(IMediator mediator, IGenericRepository<Service> unitOfWork) 
+    : BasicCRUDCommandsHandler<Service>(mediator, unitOfWork)
 {
-    public ServiceCRUDCommandsHandler(IMediator mediator, IGenericUnitOfWork unitOfWork, IMapper mapper)
-        : base(mediator, unitOfWork, mapper)
-    {
-    }
 }

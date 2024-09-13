@@ -9,7 +9,7 @@ public class ServiceRepositoryTests : GenericRepositoryTests<ServiceRepository, 
 {
     protected override Service InstantiateEntity(int entityNumber, Guid id)
     {
-        return new Service
+        return new Service(id)
         {
             ValidFrom = entityNumber >= 2 ? GetDate("2020-01-01") : null,
             ValidTo = entityNumber <= 2 ? GetDate("2022-01-01") : null,

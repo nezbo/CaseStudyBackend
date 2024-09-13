@@ -1,27 +1,16 @@
 ﻿using InvoiceAPI.Application.Features.Services;
 using InvoiceAPI.Domain.Models;
-using InvoiceAPI.Presentation.Models;
 using Microservice.Common.Test;
 
 namespace InvoiceAPI.Test.Features;
 
-public class ServiceCRUDCommandsHandlerTests : BasicCRUDCommandsHandlerTests<ServiceCRUDCommandsHandler, ServiceDto, Service>
+public class ServiceCRUDCommandsHandlerTests 
+    : BasicCRUDCommandsHandlerTests<ServiceCRUDCommandsHandler, Service>
 {
-    protected override ServiceDto InstantiateApiEntity(Guid id)
+    protected override Service InstantiateEntity(Guid id)
     {
-        return new ServiceDto
+        return new Service(id)
         {
-            Id = id,
-            Name = $"Service {id}",
-            Price = 13.37M,
-        };
-    }
-
-    protected override Service InstantiateDbEntity(Guid id)
-    {
-        return new Service
-        {
-            Id = id,
             Name = $"Service {id}",
             Price = 13.37M,
         };

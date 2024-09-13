@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Microservice.Common.Infrastructure.Repository;
 
-public class GenericRepository<T> : IGenericRepository<T> where T : class, IIdentity, new()
+public class GenericRepository<T> : IGenericRepository<T> where T : Entity
 {
     protected IBaseDbContext Context { get; }
     protected DbSet<T> DbSet => Context.GetSet<T>();
@@ -15,19 +15,18 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class, IIden
         Context = dbContext;
     }
 
+    public Task<int> SaveChangesAsync() => Context.SaveChangesAsync();
+
     public async Task AddAsync(T entity)
     {
         await DbSet.AddAsync(entity);
     }
 
-    public Task DeleteAsync(Guid id)
+    public async Task DeleteAsync(Guid id)
     {
-        T instance = (Activator.CreateInstance(typeof(T)) as T)!;
-        instance.Id = id;
-
-        DbSet.Remove(instance);
-
-        return Task.CompletedTask;
+        var entity = await DbSet.FindAsync(id);
+        if(entity != null)
+            DbSet.Remove(entity);
     }
 
     public async Task<T?> GetByIdAsync(Guid id)

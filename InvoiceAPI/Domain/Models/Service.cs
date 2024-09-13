@@ -2,7 +2,7 @@
 
 namespace InvoiceAPI.Domain.Models;
 
-public record Service : BaseEntity
+public class Service(Guid? id) : Entity(id)
 {
     public Guid InvoiceId { get; set; }
 
@@ -10,4 +10,6 @@ public record Service : BaseEntity
     public decimal Price { get; set; }
     public DateOnly? ValidFrom { get; set; }
     public DateOnly? ValidTo { get; set; }
+
+    public Service() : this(null) { }
 }

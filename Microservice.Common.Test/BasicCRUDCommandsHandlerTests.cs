@@ -9,50 +9,40 @@ using NSubstitute;
 
 namespace Microservice.Common.Test;
 
-public abstract class BasicCRUDCommandsHandlerTests<THandler, TApi, TDatabase> : BaseTestFixture<THandler>
-    where THandler : BasicCRUDCommandsHandler<TApi, TDatabase>
-    where TApi : class, IIdentity
-    where TDatabase : class, IIdentity
+public abstract class BasicCRUDCommandsHandlerTests<THandler, TDomain> : BaseTestFixture<THandler>
+    where THandler : BasicCRUDCommandsHandler<TDomain>
+    where TDomain : Entity
 {
     public BasicCRUDCommandsHandlerTests()
     {
-        // IGenericUnitOfWork
-        Container.Resolve<IGenericUnitOfWork>()
-            .GetRepository<TDatabase>()
-            .Returns(x => Container.Resolve<IGenericRepository<TDatabase>>());
-
         // IGenericRepository
-        Container.Resolve<IGenericRepository<TDatabase>>()
+        Container.Resolve<IGenericRepository<TDomain>>()
             .GetByIdAsync(Arg.Any<Guid>())
-            .Returns(x => Task.FromResult<TDatabase?>(InstantiateDbEntity(x.Arg<Guid>())));
+            .Returns(x => Task.FromResult<TDomain?>(InstantiateEntity(x.Arg<Guid>())));
 
-        // IMapper
-        Container.Resolve<IMapper>()
-            .Map<TDatabase>(Arg.Any<TApi>())
-            .Returns(x => InstantiateDbEntity(x.Arg<TApi>().Id));
-        Container.Resolve<IMapper>()
-            .Map<TApi>(Arg.Any<TDatabase>())
-            .Returns(x => InstantiateApiEntity(x.Arg<TDatabase>().Id));
+        Container.Resolve<IGenericRepository<TDomain>>()
+            .SaveChangesAsync()
+            .Returns(1);
     }
 
-    protected abstract TApi InstantiateApiEntity(Guid id);
-    protected abstract TDatabase InstantiateDbEntity(Guid id);
+    protected abstract TDomain InstantiateEntity(Guid id);
 
     [Fact]
     public async Task Handle_CreateEntityCommand_ShouldCreateEntity()
     {
         // Arrange
-        var entity = InstantiateApiEntity(Guid.NewGuid());
-        var command = new CreateEntityCommand<TApi>(entity);
+        var entity = InstantiateEntity(Guid.NewGuid());
+        var command = new CreateEntityCommand<TDomain>(entity);
 
         // Act
-        Guid id = await Sut.Handle(command, CancellationToken.None);
+        var response = await Sut.Handle(command, CancellationToken.None);
 
         // Assert
-        id.Should().NotBeEmpty();
+        response.IsError.Should().BeFalse();
+        response.Value.Id.Should().Be(entity.Id);
 
-        await Container.Resolve<IGenericRepository<TDatabase>>().Received(1).AddAsync(Arg.Is<TDatabase>(d => d.Id == id));
-        await Container.Resolve<IGenericUnitOfWork>().Received(1).CommitAsync();
+        await Container.Resolve<IGenericRepository<TDomain>>().Received(1).AddAsync(Arg.Is<TDomain>(d => d.Id == entity.Id));
+        await Container.Resolve<IGenericRepository<TDomain>>().Received(1).SaveChangesAsync();
     }
 
     [Fact]
@@ -62,14 +52,14 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TApi, TDatabase> :
         Guid id = Guid.NewGuid();
 
         // Act
-        TApi entity = await Sut.Handle(new GetEntityQuery<TApi>(id), CancellationToken.None);
+        var response = await Sut.Handle(new GetEntityQuery<TDomain>(id), CancellationToken.None);
 
         // Assert
-        entity.Should().NotBeNull();
-        entity.Id.Should().Be(id);
+        response.IsError.Should().BeFalse();
+        response.Value.Id.Should().Be(id);
 
-        await Container.Resolve<IGenericRepository<TDatabase>>().Received(1).GetByIdAsync(id);
-        await Container.Resolve<IGenericRepository<TDatabase>>().Received(0).GetByIdAsync(Arg.Is<Guid>(i => i != id));
+        await Container.Resolve<IGenericRepository<TDomain>>().Received(1).GetByIdAsync(id);
+        await Container.Resolve<IGenericRepository<TDomain>>().Received(0).GetByIdAsync(Arg.Is<Guid>(i => i != id));
     }
 
     [Fact]
@@ -78,21 +68,21 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TApi, TDatabase> :
         // Arrange
         var entities = new[]
         {
-            InstantiateDbEntity(Guid.NewGuid()),
-            InstantiateDbEntity(Guid.NewGuid()),
+            InstantiateEntity(Guid.NewGuid()),
+            InstantiateEntity(Guid.NewGuid()),
         };
-        Container.Resolve<IGenericRepository<TDatabase>>()
+        Container.Resolve<IGenericRepository<TDomain>>()
             .GetAllAsync()
             .Returns(entities);
 
         // Act
-        IEnumerable<TApi> result = await Sut.Handle(new ListAllEntitiesQuery<TApi>(), CancellationToken.None);
+        var response = await Sut.Handle(new ListAllEntitiesQuery<TDomain>(), CancellationToken.None);
 
         // Assert
-        entities.Should().NotBeEmpty();
-        entities.Should().HaveCount(2);
+        response.IsError.Should().BeFalse();
+        response.Value.Should().HaveCount(2);
 
-        await Container.Resolve<IGenericRepository<TDatabase>>().Received(1).GetAllAsync();
+        await Container.Resolve<IGenericRepository<TDomain>>().Received(1).GetAllAsync();
     }
 
     [Fact]
@@ -101,27 +91,27 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TApi, TDatabase> :
         // Arrange
         var entities = new[]
         {
-            InstantiateDbEntity(Guid.NewGuid()),
-            InstantiateDbEntity(Guid.NewGuid()),
+            InstantiateEntity(Guid.NewGuid()),
+            InstantiateEntity(Guid.NewGuid()),
         };
-        Container.Resolve<IGenericRepository<TDatabase>>()
+        Container.Resolve<IGenericRepository<TDomain>>()
             .GetByIdsAsync(Arg.Any<Guid[]>())
             .Returns(x => entities.Where(e => x.Arg<Guid[]>().Contains(e.Id)));
 
         // Act
         var query = entities.Select(e => e.Id).Append(Guid.NewGuid()).ToArray();
-        IEnumerable<TApi> result = await Sut.Handle(new ListEntitiesQuery<TApi>(query), CancellationToken.None);
+        var response = await Sut.Handle(new ListEntitiesQuery<TDomain>(query), CancellationToken.None);
 
         // Assert
-        entities.Should().NotBeEmpty();
-        entities.Should().HaveCount(2);
+        response.IsError.Should().BeFalse();
+        response.Value.Should().HaveCount(2);
     }
 
     [Fact]
-    public async Task Handle_ListEntitiesQuery_ShouldThrowWhenNoInds()
+    public async Task Handle_ListEntitiesQuery_ShouldReturnEmpty_WhenNoInds()
     {
-        var action = () => Sut.Handle(new ListEntitiesQuery<TApi>(Enumerable.Empty<Guid>()), CancellationToken.None);
-        await action.Should().ThrowAsync<ValidationException>();
+        var response = await Sut.Handle(new ListEntitiesQuery<TDomain>([]), CancellationToken.None);
+        response.IsError.Should().BeFalse();
     }
 
     [Fact]
@@ -129,15 +119,15 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TApi, TDatabase> :
     {
         // Arrange
         Guid id = Guid.NewGuid();
-        var updateEntity = InstantiateApiEntity(id);
-        var command = new UpdateEntityCommand<TApi>(updateEntity);
+        var updateEntity = InstantiateEntity(id);
+        var command = new UpdateEntityCommand<TDomain>(id, updateEntity);
 
         // Act
         await Sut.Handle(command, CancellationToken.None);
 
         // Assert
-        await Container.Resolve<IGenericRepository<TDatabase>>().Received(1).UpdateAsync(Arg.Is<TDatabase>(d => d.Id == id));
-        await Container.Resolve<IGenericUnitOfWork>().Received(1).CommitAsync();
+        await Container.Resolve<IGenericRepository<TDomain>>().Received(1).UpdateAsync(Arg.Is<TDomain>(d => d.Id == id));
+        await Container.Resolve<IGenericRepository<TDomain>>().Received(1).SaveChangesAsync();
     }
 
     [Fact]
@@ -145,13 +135,13 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TApi, TDatabase> :
     {
         // Arrange
         Guid id = Guid.NewGuid();
-        var command = new DeleteEntityCommand<TApi>(id);
+        var command = new DeleteEntityCommand<TDomain>(id);
 
         // Act
         await Sut.Handle(command, CancellationToken.None);
 
         // Assert
-        await Container.Resolve<IGenericRepository<TDatabase>>().Received(1).DeleteAsync(id);
-        await Container.Resolve<IGenericUnitOfWork>().Received(1).CommitAsync();
+        await Container.Resolve<IGenericRepository<TDomain>>().Received(1).DeleteAsync(id);
+        await Container.Resolve<IGenericRepository<TDomain>>().Received(1).SaveChangesAsync();
     }
 }

@@ -1,10 +1,11 @@
-﻿using MediatR;
+﻿using ErrorOr;
+using MediatR;
 
 namespace Microservice.Common.Application.Features;
 
-public class UpdateEntityCommand<T> : IRequest
+public class UpdateEntityCommand<T>(Guid id, T entity) : IRequest<ErrorOr<Updated>>
 {
-    public T Entity { get; set; }
+    public Guid Id { get; set; } = id;
+    public T Entity { get; set; } = entity;
 
-    public UpdateEntityCommand(T entity) => Entity = entity;
 }

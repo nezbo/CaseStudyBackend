@@ -10,8 +10,8 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" />
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" />
     <PackageReference Include="DateOnlyTimeOnly.AspNet" />
+    <PackageReference Include="ErrorOr" />
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />

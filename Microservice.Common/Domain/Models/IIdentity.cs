@@ -2,5 +2,5 @@
 
 public interface IIdentity
 {
-    Guid Id { get; set; }
+    Guid Id { get; }
 }

@@ -1,29 +1,21 @@
 ﻿using AssetAPI.Application.Features.Assets;
 using AssetAPI.Domain.Models;
-using AssetAPI.Presentation.Models;
 using Microservice.Common.Test;
+using Xunit;
 
 namespace AssetAPI.Test.Features;
 
-public class AssetCRUDCommandsHandlerTests : BasicCRUDCommandsHandlerTests<AssetCRUDCommandsHandler, AssetDto, Asset>
+public class AssetCRUDCommandsHandlerTests 
+    : BasicCRUDCommandsHandlerTests<AssetCRUDCommandsHandler, Asset>
 {
-    protected override AssetDto InstantiateApiEntity(Guid id)
+    protected override Asset InstantiateEntity(Guid id)
     {
-        return new AssetDto
+        var result = new Asset(id)
         {
-            Id = id,
-            Name = $"Asset {id}",
-            Price = 13.37M,
+            Name = $"Asset {id}"
         };
-    }
+        result.SetPrice(13.37M);
 
-    protected override Asset InstantiateDbEntity(Guid id)
-    {
-        return new Asset
-        {
-            Id = id,
-            Name = $"Asset {id}",
-            Price = 13.37M,
-        };
+        return result;
     }
 }

@@ -1,10 +1,9 @@
-﻿using MediatR;
+﻿using ErrorOr;
+using MediatR;
 
 namespace Microservice.Common.Application.Features;
 
-public class CreateEntityCommand<T> : IRequest<Guid>
+public class CreateEntityCommand<T>(T entity) : IRequest<ErrorOr<T>>
 {
-    public T Entity { get; set; }
-
-    public CreateEntityCommand(T entity) => Entity = entity;
+    public T Entity { get; set; } = entity;
 }

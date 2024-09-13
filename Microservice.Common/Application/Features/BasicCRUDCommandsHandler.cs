@@ -1,91 +1,74 @@
-﻿using AutoMapper;
-using FluentValidation;
+﻿using ErrorOr;
 using MediatR;
-using Microservice.Common.Application.Features.Validation;
+using Microservice.Common.Application.Features.Errors;
 using Microservice.Common.Application.Repository;
 using Microservice.Common.Domain.Models;
 
 namespace Microservice.Common.Application.Features;
 
-public abstract class BasicCRUDCommandsHandler<TApi, TDatabase>
-    : IRequestHandler<CreateEntityCommand<TApi>, Guid>,
-      IRequestHandler<GetEntityQuery<TApi>, TApi>,
-      IRequestHandler<ListAllEntitiesQuery<TApi>, IEnumerable<TApi>>,
-      IRequestHandler<ListEntitiesQuery<TApi>, IEnumerable<TApi>>,
-      IRequestHandler<UpdateEntityCommand<TApi>>,
-      IRequestHandler<PatchEntityCommand<TApi>>,
-      IRequestHandler<DeleteEntityCommand<TApi>, bool>
-    where TApi : class, IIdentity
-    where TDatabase : class, IIdentity
+public abstract class BasicCRUDCommandsHandler<TDatabase>
+    (IMediator mediator, IGenericRepository<TDatabase> repository)
+    : IRequestHandler<CreateEntityCommand<TDatabase>, ErrorOr<TDatabase>>,
+      IRequestHandler<GetEntityQuery<TDatabase>, ErrorOr<TDatabase>>,
+      IRequestHandler<ListAllEntitiesQuery<TDatabase>, ErrorOr<IEnumerable<TDatabase>>>,
+      IRequestHandler<ListEntitiesQuery<TDatabase>, ErrorOr<IEnumerable<TDatabase>>>,
+      IRequestHandler<UpdateEntityCommand<TDatabase>, ErrorOr<Updated>>,
+      IRequestHandler<DeleteEntityCommand<TDatabase>, ErrorOr<Deleted>>
+    
+    where TDatabase : Entity
 {
-    private readonly IMediator _mediator;
-    private readonly IGenericUnitOfWork _unitOfWork;
-    private readonly IMapper _mapper;
+    private readonly IMediator _mediator = mediator;
+    private readonly IGenericRepository<TDatabase> _repository = repository;
 
-    private IGenericRepository<TDatabase> Repository => _unitOfWork.GetRepository<TDatabase>()!;
-
-    public BasicCRUDCommandsHandler(IMediator mediator, IGenericUnitOfWork unitOfWork, IMapper mapper)
+    public virtual async Task<ErrorOr<TDatabase>> Handle(CreateEntityCommand<TDatabase> request, CancellationToken cancellationToken)
     {
-        _mediator = mediator;
-        _unitOfWork = unitOfWork;
-        _mapper = mapper;
+        await _repository.AddAsync(request.Entity);
+        var changes = await _repository.SaveChangesAsync();
+
+        return changes > 0
+            ? request.Entity
+            : CommonErrors.CreationFailed;
+            
     }
 
-    public virtual async Task<Guid> Handle(CreateEntityCommand<TApi> request, CancellationToken cancellationToken)
+    public virtual async Task<ErrorOr<TDatabase>> Handle(GetEntityQuery<TDatabase> request, CancellationToken cancellationToken)
     {
-        request.Entity.Id = Guid.NewGuid();
-
-        TDatabase entity = _mapper.Map<TDatabase>(request.Entity);
-        await Repository.AddAsync(entity);
-        await _unitOfWork.CommitAsync();
-
-        return entity.Id;
+        var result = await _repository.GetByIdAsync(request.Id);
+        return result == null
+            ? Error.NotFound()
+            : result;
     }
 
-    public virtual async Task<TApi> Handle(GetEntityQuery<TApi> request, CancellationToken cancellationToken)
+    public virtual async Task<ErrorOr<IEnumerable<TDatabase>>> Handle(ListAllEntitiesQuery<TDatabase> request, CancellationToken cancellationToken)
     {
-        TDatabase? entity = await Repository.GetByIdAsync(request.Id);
-        return _mapper.Map<TApi>(entity);
+        var result = await _repository.GetAllAsync();
+        return result == null
+            ? Error.Unexpected()
+            : ErrorOrFactory.From(result);
     }
 
-    public virtual async Task<IEnumerable<TApi>> Handle(ListAllEntitiesQuery<TApi> request, CancellationToken cancellationToken)
+    public virtual async Task<ErrorOr<IEnumerable<TDatabase>>> Handle(ListEntitiesQuery<TDatabase> request, CancellationToken cancellationToken)
     {
-        return (await Repository.GetAllAsync())
-            .Select(o => _mapper.Map<TApi>(o));
+        var result = await _repository.GetByIdsAsync(request.Ids.ToArray());
+        return result == null
+            ? Error.Unexpected()
+            : ErrorOrFactory.From(result);
     }
 
-    public virtual async Task<IEnumerable<TApi>> Handle(ListEntitiesQuery<TApi> request, CancellationToken cancellationToken)
+    public virtual async Task<ErrorOr<Updated>> Handle(UpdateEntityCommand<TDatabase> request, CancellationToken cancellationToken)
     {
-        new ListEntitiesValidator<TApi>().ValidateAndThrow(request);
-
-        return (await Repository.GetByIdsAsync(request.Ids.ToArray()))
-            .Select(o => _mapper.Map<TApi>(o));
+        await _repository.UpdateAsync(request.Entity);
+        var changes = await _repository.SaveChangesAsync();
+        return changes > 0
+            ? Result.Updated
+            : CommonErrors.UpdateFailed;
     }
 
-    public virtual async Task Handle(UpdateEntityCommand<TApi> request, CancellationToken cancellationToken)
+    public virtual async Task<ErrorOr<Deleted>> Handle(DeleteEntityCommand<TDatabase> request, CancellationToken cancellationToken)
     {
-        TDatabase? entity = await Repository.GetByIdAsync(request.Entity.Id);
-
-        if (entity != null)
-        {
-            _mapper.Map(request.Entity, entity);
-            await Repository.UpdateAsync(entity);
-            await _unitOfWork.CommitAsync();
-        }
-    }
-
-    public async Task Handle(PatchEntityCommand<TApi> request, CancellationToken cancellationToken)
-    {
-        TApi entity = await _mediator.Send(new GetEntityQuery<TApi>(request.Id), cancellationToken);
-
-        request.Patch.ApplyTo(entity);
-
-        await _mediator.Send(new UpdateEntityCommand<TApi>(entity), cancellationToken);
-    }
-
-    public virtual async Task<bool> Handle(DeleteEntityCommand<TApi> request, CancellationToken cancellationToken)
-    {
-        await Repository.DeleteAsync(request.Id);
-        return await _unitOfWork.CommitAsync() > 0;
+        await _repository.DeleteAsync(request.Id);
+        return await _repository.SaveChangesAsync() > 0
+            ? Result.Deleted
+            : Error.NotFound();
     }
 }

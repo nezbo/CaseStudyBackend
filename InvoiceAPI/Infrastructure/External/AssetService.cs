@@ -26,13 +26,13 @@ public class AssetService : IAssetService
 
     public async Task<AssetDto?> GetAssetAsync(Guid id)
     {
-        return await _restClient.GetJsonAsync<AssetDto>("api/v1/asset/{id}", new { id });
+        return await _restClient.GetAsync<AssetDto>("api/v1/asset/{id}", new { id });
     }
 
     public async Task<IEnumerable<AssetDto>> GetAssetsAsync()
     {
-        return await _restClient.GetJsonAsync<IEnumerable<AssetDto>>("api/v1/asset")
-            ?? Enumerable.Empty<AssetDto>();
+        return await _restClient.GetAsync<IEnumerable<AssetDto>>("api/v1/asset")
+            ?? [];
     }
 
     public async Task<IEnumerable<AssetDto>> GetAssetsAsync(params Guid[] ids)
@@ -41,6 +41,6 @@ public class AssetService : IAssetService
         ids.ForEach(id => request.AddQueryParameter("ids", id.ToString()));
 
         return await _restClient.GetAsync<IEnumerable<AssetDto>>(request)
-            ?? Enumerable.Empty<AssetDto>();
+            ?? [];
     }
 }

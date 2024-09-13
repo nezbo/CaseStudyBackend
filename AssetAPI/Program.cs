@@ -25,8 +25,6 @@ namespace AssetAPI
 
             builder.Services.AddBaseDbContext<ApiDbContext>();
 
-            builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
-            builder.Services.AddTransient<IGenericUnitOfWork, UnitOfWork>();
             builder.Services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddTransient<IAssetRepository, AssetRepository>();
 

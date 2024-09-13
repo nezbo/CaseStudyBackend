@@ -8,9 +8,8 @@ public class InvoiceRepositoryTests : GenericRepositoryTests<InvoiceRepository, 
 {
     protected override Invoice InstantiateEntity(int entityNumber, Guid id)
     {
-        return new Invoice
+        return new Invoice(id)
         {
-            Id = id,
             IssuingDate = GetDate($"2020-01-{entityNumber:D2}"),
         };
     }
