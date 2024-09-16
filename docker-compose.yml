@@ -62,7 +62,7 @@ services:
     ports:
       - "8880:8889"     # Prometheus metrics exporter (endpoint)
       - "13133:13133"   # Health check extension
-      - "55679:55679"   # ZPages extension
+      - "5679:5679"   # ZPages extension
       - "4317:4317"     # OTLP Receiver
     depends_on:
       - jaeger

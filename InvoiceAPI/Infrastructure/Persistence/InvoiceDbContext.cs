@@ -13,7 +13,7 @@ public class InvoiceDbContext : BaseDbContext<InvoiceDbContext>
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<Invoice>().OwnsMany(i => i.Services, s =>
+        modelBuilder.Entity<Invoice>().OwnsMany<Service>("_services", s =>
         {
             s.WithOwner().HasForeignKey(s => s.InvoiceId);
             s.Property<Guid>(nameof(Service.Id));

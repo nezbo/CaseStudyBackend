@@ -16,7 +16,7 @@ namespace Microservice.Common.Presentation.Controllers;
 [Route("api/v1/[controller]")]
 public class CRUDController<TModel, TDomain>(IMediator mediator, IMapper mapper) : ControllerBase
     where TModel : class, IIdentity
-    where TDomain : Entity
+    where TDomain : AggregateRoot
 {
     [HttpPost]
     public virtual async Task<IActionResult> Create([FromBody] TModel model)
@@ -105,7 +105,7 @@ public class CRUDController<TModel, TDomain>(IMediator mediator, IMapper mapper)
     [HttpDelete("{id}")]
     public virtual async Task<ActionResult> Delete(Guid id)
     {
-        await mediator.Send(new DeleteEntityCommand<TModel>(id));
+        await mediator.Send(new DeleteEntityCommand<TDomain>(id));
         return NoContent();
     }
 

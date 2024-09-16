@@ -9,8 +9,11 @@ public class ServiceProfile : Profile
 {
     public ServiceProfile()
     {
+        CreateMap<Invoice, InvoiceDto>()
+            .ForMember(i => i.Services, c => c.MapFrom(i => i.GetServices()));
         CreateMap<Service, ServiceDto>();
-        CreateMap<ServiceDto, Service>();
+        CreateMap<ServiceDto, Service>()
+            .ConstructUsing(dto => Service.Create(dto.InvoiceId, dto.Name, dto.Price, dto.ValidFrom, dto.ValidTo).Value);
 
         CreateMap<AssetDto, ServiceDto>();
     }

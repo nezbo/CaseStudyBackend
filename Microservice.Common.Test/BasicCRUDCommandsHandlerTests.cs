@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using FluentAssertions;
+﻿using FluentAssertions;
 using FluentValidation;
 using Microservice.Common.Application.Features;
 using Microservice.Common.Application.Repository;
@@ -11,7 +10,7 @@ namespace Microservice.Common.Test;
 
 public abstract class BasicCRUDCommandsHandlerTests<THandler, TDomain> : BaseTestFixture<THandler>
     where THandler : BasicCRUDCommandsHandler<TDomain>
-    where TDomain : Entity
+    where TDomain : AggregateRoot
 {
     public BasicCRUDCommandsHandlerTests()
     {

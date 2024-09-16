@@ -1,15 +1,39 @@
-﻿using Microservice.Common.Domain.Models;
+﻿using ErrorOr;
+using InvoiceAPI.Domain.Errors;
+using Microservice.Common.Domain.Models;
 
 namespace InvoiceAPI.Domain.Models;
 
-public class Invoice(Guid? id) : AggregateRoot(id)
+public class Invoice : AggregateRoot
 {
-    public DateOnly IssuingDate { get; set; }
-    public ushort Year { get; set; }
-    public ushort Month { get; set; }
-    public decimal Total { get; set; }
+    public static ErrorOr<Invoice> Create(DateOnly issuingDate, ushort year, ushort month, decimal total)
+    {
+        if (total < 0)
+            return InvoiceErrors.AmountCanNotBeNegative;
 
-    public List<Service> Services { get; set; } = [];
+        return new Invoice
+        {
+            IssuingDate = issuingDate,
+            Year = year,
+            Month = month,
+            Total = total
+        };
+    }
 
-    public Invoice() : this(null) { }
+    public required DateOnly IssuingDate { get; set; }
+    public required ushort Year { get; set; }
+    public required ushort Month { get; set; }
+    public required decimal Total { get; set; }
+
+    private readonly List<Service> _services = [];
+
+    public Invoice() : base(null) { }
+
+    public IEnumerable<Service> GetServices() => _services.AsReadOnly();
+
+    public ErrorOr<Success> AddService(Service service)
+    {
+        _services.Add(service);
+        return Result.Success;
+    }
 }

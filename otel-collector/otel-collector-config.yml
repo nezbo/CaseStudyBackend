@@ -1,7 +1,7 @@
 extensions:
   health_check:
   zpages:
-    endpoint: :55679
+    endpoint: :5679
 
 receivers:
   otlp:

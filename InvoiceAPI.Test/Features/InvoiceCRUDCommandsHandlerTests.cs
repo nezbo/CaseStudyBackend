@@ -10,9 +10,14 @@ public class InvoiceCRUDCommandsHandlerTests
 
     protected override Invoice InstantiateEntity(Guid id)
     {
-        return new Invoice(id)
+        var month = (ushort)(id.GetHashCode() % 12 + 1);
+        return new Invoice
         {
-            Month = (ushort)(id.GetHashCode() % 12 + 1),
+            Id = id,
+            IssuingDate = new DateOnly(2024, month, 1),
+            Year = 2024,
+            Month = month,
+            Total = 1337,
         };
     }
 }

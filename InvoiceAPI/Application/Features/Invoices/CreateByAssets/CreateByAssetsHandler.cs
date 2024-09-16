@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ErrorOr;
 using InvoiceAPI.Application.External;
+using InvoiceAPI.Application.External.Models;
 using InvoiceAPI.Domain.Models;
 using InvoiceAPI.Presentation.Models;
 using MediatR;
@@ -26,19 +27,29 @@ public class CreateByAssetsHandler
 
     public async Task<ErrorOr<Guid>> Handle(CreateByAssetsCommand request, CancellationToken cancellationToken)
     {
+        var assets = await _assetService.GetAssetsAsync(request.AssetIds.ToArray());
+        foreach (var asset in assets)
+        {
+            var service = MapAssetToService(asset, request.Data.Id);
+
+            if (service.IsError)
+                return service.Errors;
+
+            var success = request.Data.AddService(service.Value);
+            if (success.IsError)
+                return success.Errors;
+        }
+
         var response = await _mediator.Send(new CreateEntityCommand<Invoice>(request.Data), cancellationToken);
 
         if (response.IsError)
             return response.Errors;
 
-        var invoiceId = response.Value.Id;
+        return response.Value.Id;
+    }
 
-        var assets = await _assetService.GetAssetsAsync(request.AssetIds.ToArray());
-        var services = _mapper.Map<IEnumerable<Service>>(assets);
-        await services
-            .ForEachThen(s => s.InvoiceId = invoiceId)
-            .ForEachThenAsync(s => _mediator.Send(new CreateEntityCommand<Service>(s), cancellationToken));
-
-        return invoiceId;
+    private static ErrorOr<Service> MapAssetToService(AssetDto asset, Guid invoiceId)
+    {
+        return Service.Create(invoiceId, asset.Name, asset.Price, asset.ValidFrom, asset.ValidTo);
     }
 }

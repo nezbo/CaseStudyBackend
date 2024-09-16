@@ -4,7 +4,7 @@ using AssetAPI.Domain.Errors;
 
 namespace AssetAPI.Domain.Models;
 
-public class Asset(Guid? id) : Entity(id)
+public class Asset(Guid? id) : AggregateRoot(id)
 {
     public string Name { get; set; } = string.Empty;
     public decimal Price { get; private set; }

@@ -6,7 +6,7 @@ namespace Microservice.Common.Application.Features;
 
 public class DeleteEntityCommand<T>(Guid id) 
     : IRequest<ErrorOr<Deleted>>
-    where T : IIdentity
+    where T : AggregateRoot
 {
     public Guid Id { get; set; } = id;
 }
