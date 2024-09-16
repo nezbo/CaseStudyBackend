@@ -10,7 +10,7 @@ public class InvoiceCRUDCommandsHandlerTests
 
     protected override Invoice InstantiateEntity(Guid id)
     {
-        var month = (ushort)(id.GetHashCode() % 12 + 1);
+        ushort month = Convert.ToUInt16((Math.Abs(id.GetHashCode()) % 12) + 1);
         return new Invoice
         {
             Id = id,
