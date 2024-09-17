@@ -1,4 +1,4 @@
-﻿namespace Microservice.Common.Application.Extensions;
+﻿namespace Microservice.Common.Extensions;
 
 public static class LINQExtensions
 {

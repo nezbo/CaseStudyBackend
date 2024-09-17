@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using FluentValidation;
 using Microservice.Common.Application.Features;
 using Microservice.Common.Application.Repository;
 using Microservice.Common.Domain.Models;
@@ -18,10 +17,6 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TDomain> : BaseTes
         Container.Resolve<IGenericRepository<TDomain>>()
             .GetByIdAsync(Arg.Any<Guid>())
             .Returns(x => Task.FromResult<TDomain?>(InstantiateEntity(x.Arg<Guid>())));
-
-        Container.Resolve<IGenericRepository<TDomain>>()
-            .SaveChangesAsync()
-            .Returns(1);
     }
 
     protected abstract TDomain InstantiateEntity(Guid id);
@@ -41,7 +36,6 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TDomain> : BaseTes
         response.Value.Id.Should().Be(entity.Id);
 
         await Container.Resolve<IGenericRepository<TDomain>>().Received(1).AddAsync(Arg.Is<TDomain>(d => d.Id == entity.Id));
-        await Container.Resolve<IGenericRepository<TDomain>>().Received(1).SaveChangesAsync();
     }
 
     [Fact]
@@ -126,7 +120,6 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TDomain> : BaseTes
 
         // Assert
         await Container.Resolve<IGenericRepository<TDomain>>().Received(1).UpdateAsync(Arg.Is<TDomain>(d => d.Id == id));
-        await Container.Resolve<IGenericRepository<TDomain>>().Received(1).SaveChangesAsync();
     }
 
     [Fact]
@@ -141,6 +134,5 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TDomain> : BaseTes
 
         // Assert
         await Container.Resolve<IGenericRepository<TDomain>>().Received(1).DeleteAsync(id);
-        await Container.Resolve<IGenericRepository<TDomain>>().Received(1).SaveChangesAsync();
     }
 }

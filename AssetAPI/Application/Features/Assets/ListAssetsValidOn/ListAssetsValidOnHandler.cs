@@ -5,16 +5,11 @@ using MediatR;
 
 namespace AssetAPI.Application.Features.Assets.ListAssetsValidOn;
 
-public class ListAssetsValidOnHandler : IRequestHandler<ListAssetsValidOnQuery, IEnumerable<AssetDto>>
+public class ListAssetsValidOnHandler(IAssetRepository repository, IMapper mapper) 
+    : IRequestHandler<ListAssetsValidOnQuery, IEnumerable<AssetDto>>
 {
-    private readonly IAssetRepository _repository;
-    private readonly IMapper _mapper;
-
-    public ListAssetsValidOnHandler(IAssetRepository repository, IMapper mapper)
-    {
-        _repository = repository;
-        _mapper = mapper;
-    }
+    private readonly IAssetRepository _repository = repository;
+    private readonly IMapper _mapper = mapper;
 
     public async Task<IEnumerable<AssetDto>> Handle(ListAssetsValidOnQuery request, CancellationToken cancellationToken)
     {

@@ -10,6 +10,4 @@ public interface IGenericRepository<T> where T : Entity
     Task AddAsync(T entity);
     Task UpdateAsync(T entity);
     Task DeleteAsync(Guid id);
-
-    Task<int> SaveChangesAsync();
 }

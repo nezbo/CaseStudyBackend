@@ -22,13 +22,14 @@ public abstract class BasicCRUDCommandsHandler<TEntity>
 
     public virtual async Task<ErrorOr<TEntity>> Handle(CreateEntityCommand<TEntity> request, CancellationToken cancellationToken)
     {
-        await _repository.AddAsync(request.Entity);
-        var changes = await _repository.SaveChangesAsync();
+        var match = await _mediator.Send(new GetEntityQuery<TEntity>(request.Entity.Id), cancellationToken);
 
-        return changes > 0
-            ? request.Entity
-            : CommonErrors.CreationFailed;
-            
+        if (!match.IsError)
+            return Error.Conflict();
+
+        await _repository.AddAsync(request.Entity);
+
+        return request.Entity;
     }
 
     public virtual async Task<ErrorOr<TEntity>> Handle(GetEntityQuery<TEntity> request, CancellationToken cancellationToken)
@@ -58,17 +59,17 @@ public abstract class BasicCRUDCommandsHandler<TEntity>
     public virtual async Task<ErrorOr<Updated>> Handle(UpdateEntityCommand<TEntity> request, CancellationToken cancellationToken)
     {
         await _repository.UpdateAsync(request.Entity);
-        var changes = await _repository.SaveChangesAsync();
-        return changes > 0
-            ? Result.Updated
-            : CommonErrors.UpdateFailed;
+        return Result.Updated;
     }
 
     public virtual async Task<ErrorOr<Deleted>> Handle(DeleteEntityCommand<TEntity> request, CancellationToken cancellationToken)
     {
+        var match = await _mediator.Send(new GetEntityQuery<TEntity>(request.Id), cancellationToken);
+
+        if (match.IsError)
+            return match.Errors;
+
         await _repository.DeleteAsync(request.Id);
-        return await _repository.SaveChangesAsync() > 0
-            ? Result.Deleted
-            : Error.NotFound();
+        return Result.Deleted;
     }
 }

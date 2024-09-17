@@ -3,7 +3,7 @@ using AssetAPI.Domain.Models;
 using AssetAPI.Presentation.Models;
 using AutoMapper;
 using MediatR;
-using Microservice.Common.Application.Extensions;
+using Microservice.Common.Extensions;
 using Microservice.Common.Presentation.Controllers;
 using Microsoft.AspNetCore.Mvc;
 

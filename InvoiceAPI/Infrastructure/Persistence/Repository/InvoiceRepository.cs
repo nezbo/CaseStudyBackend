@@ -5,9 +5,7 @@ using Microservice.Common.Infrastructure.Repository;
 
 namespace InvoiceAPI.Infrastructure.Persistence.Repository;
 
-public class InvoiceRepository : GenericRepository<Invoice>, IInvoiceRepository
+public class InvoiceRepository(IBaseDbContext dbContext) 
+    : GenericRepository<Invoice>(dbContext), IInvoiceRepository
 {
-    public InvoiceRepository(IBaseDbContext dbContext) : base(dbContext)
-    {
-    }
 }

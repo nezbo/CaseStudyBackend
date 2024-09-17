@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using ErrorOr;
 using MediatR;
-using Microservice.Common.Application.Extensions;
 using Microservice.Common.Application.Features;
 using Microservice.Common.Domain.Models;
 using Microsoft.AspNetCore.JsonPatch;
@@ -9,6 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Reflection;
 using MoreLinq;
+using Microservice.Common.Extensions;
+using Microservice.Common.Presentation.Extensions;
 
 namespace Microservice.Common.Presentation.Controllers;
 
@@ -24,7 +25,7 @@ public class CRUDController<TModel, TDomain>(IMediator mediator, IMapper mapper)
         var domainModel = mapper.Map<TDomain>(model);
         var response = await mediator.Send(new CreateEntityCommand<TDomain>(domainModel));
 
-        return response.Match(obj => CreatedAtAction(nameof(Read), new { obj.Id }, obj), e => Problem());
+        return this.MatchOrProblem(response, obj => CreatedAtAction(nameof(Read), new { obj.Id }, obj));
     }
 
     [HttpGet]
@@ -42,7 +43,7 @@ public class CRUDController<TModel, TDomain>(IMediator mediator, IMapper mapper)
         }
 
         if (response.IsError)
-            return Problem();
+            return this.Problem(response.Errors);
 
         result = mapper.Map<IEnumerable<TModel>>(response.Value);
         result.OfType<IHasEditUrl>().ForEach(SetEditUrl);
@@ -68,7 +69,7 @@ public class CRUDController<TModel, TDomain>(IMediator mediator, IMapper mapper)
             return Ok(result);
         }
 
-        return Problem();
+        return this.Problem(response.Errors);
     }
 
     [HttpPut("{id}")]
@@ -76,7 +77,7 @@ public class CRUDController<TModel, TDomain>(IMediator mediator, IMapper mapper)
     {
         var domainModel = mapper.Map<TDomain>(model);
         var response = await mediator.Send(new UpdateEntityCommand<TDomain>(id, domainModel));
-        return response.Match<IActionResult>(u => Ok(), e => Problem());
+        return this.MatchOrProblem(response, u => Ok());
     }
 
     [HttpPatch("{id}")]
@@ -94,7 +95,7 @@ public class CRUDController<TModel, TDomain>(IMediator mediator, IMapper mapper)
             domainModel = mapper.Map<TDomain>(dto);
             var response = await mediator.Send(new UpdateEntityCommand<TDomain>(id, domainModel.Value));
 
-            return response.Match<IActionResult>(u => Ok(), e => Problem());
+            return this.MatchOrProblem(response, u => Ok());
         }
         else
         {

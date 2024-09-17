@@ -1,10 +1,10 @@
 using AssetAPI.Application.Repository;
 using AssetAPI.Infrastructure.Persistence;
 using AssetAPI.Infrastructure.Persistence.Repository;
+using Microservice.Common;
 using Microservice.Common.Application.Extensions;
 using Microservice.Common.Application.OpenTelemetry.Extensions;
 using Microservice.Common.Application.Repository;
-using Microservice.Common.Infrastructure.MediatR.Validation;
 using Microservice.Common.Infrastructure.Repository;
 using System.Reflection;
 
@@ -23,10 +23,7 @@ namespace AssetAPI
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables();
 
-            builder.Services.AddBaseDbContext<ApiDbContext>();
-
-            builder.Services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            builder.Services.AddTransient<IAssetRepository, AssetRepository>();
+            builder.Services.AddInfrastructure<ApiDbContext>(Assembly.GetExecutingAssembly());
 
             builder.Services.AddProblemDetails();
             builder.Services.AddControllers()
@@ -36,7 +33,6 @@ namespace AssetAPI
             builder.Services.AddDateOnlyTimeOnlyStringConverters();
 
             builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
-            builder.Services.AddMediatRWithValidation(Assembly.GetExecutingAssembly());
 
             var app = builder.Build();
 
@@ -51,10 +47,11 @@ namespace AssetAPI
                 });
             }
 
+            
             //app.UseHttpsRedirection();
-
             app.UseAuthorization();
 
+            app.AddInfrastructureMiddleware();
             app.MapControllers();
 
             app.ApplyDatabaseMigrations<ApiDbContext>();

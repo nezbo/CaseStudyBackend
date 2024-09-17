@@ -2,32 +2,28 @@
 using ErrorOr;
 using InvoiceAPI.Application.External;
 using InvoiceAPI.Application.External.Models;
+using InvoiceAPI.Domain.Errors;
 using InvoiceAPI.Domain.Models;
-using InvoiceAPI.Presentation.Models;
 using MediatR;
-using Microservice.Common.Application.Extensions;
 using Microservice.Common.Application.Features;
-using MoreLinq;
 
 namespace InvoiceAPI.Application.Features.Invoices.CreateByAssets;
 
-public class CreateByAssetsHandler 
-    : IRequestHandler<CreateByAssetsCommand, ErrorOr<Guid>>
+public class CreateByAssetsHandler(
+    IMediator mediator,
+    IAssetService assetService)
+        : IRequestHandler<CreateByAssetsCommand, ErrorOr<Guid>>
 {
-    private readonly IMediator _mediator;
-    private readonly IAssetService _assetService;
-    private readonly IMapper _mapper;
-
-    public CreateByAssetsHandler(IMediator mediator, IAssetService assetService, IMapper mapper)
-    {
-        _mediator = mediator;
-        _assetService = assetService;
-        _mapper = mapper;
-    }
+    private readonly IMediator _mediator = mediator;
+    private readonly IAssetService _assetService = assetService;
 
     public async Task<ErrorOr<Guid>> Handle(CreateByAssetsCommand request, CancellationToken cancellationToken)
     {
         var assets = await _assetService.GetAssetsAsync(request.AssetIds.ToArray());
+
+        if (!AllAssetsFound(request, assets))
+            return InvoiceErrors.AssetsNotFound;
+
         foreach (var asset in assets)
         {
             var service = MapAssetToService(asset, request.Data.Id);
@@ -46,6 +42,11 @@ public class CreateByAssetsHandler
             return response.Errors;
 
         return response.Value.Id;
+    }
+
+    private static bool AllAssetsFound(CreateByAssetsCommand request, IEnumerable<AssetDto> assets)
+    {
+        return assets.Select(a => a.Id).Order().SequenceEqual(request.AssetIds.Order());
     }
 
     private static ErrorOr<Service> MapAssetToService(AssetDto asset, Guid invoiceId)

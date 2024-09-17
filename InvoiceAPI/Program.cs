@@ -3,10 +3,10 @@ using InvoiceAPI.Application.Repository;
 using InvoiceAPI.Infrastructure.External;
 using InvoiceAPI.Infrastructure.Persistence;
 using InvoiceAPI.Infrastructure.Persistence.Repository;
+using Microservice.Common;
 using Microservice.Common.Application.Extensions;
 using Microservice.Common.Application.OpenTelemetry.Extensions;
 using Microservice.Common.Application.Repository;
-using Microservice.Common.Infrastructure.MediatR.Validation;
 using Microservice.Common.Infrastructure.Repository;
 using System.Reflection;
 
@@ -27,11 +27,8 @@ public class Program
 
         // Add services to the container.
 
-        builder.Services.AddBaseDbContext<InvoiceDbContext>();
         builder.Services.AddHttpClient();
-
-        builder.Services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-        builder.Services.AddTransient<IInvoiceRepository, InvoiceRepository>();
+        builder.Services.AddInfrastructure<InvoiceDbContext>(Assembly.GetExecutingAssembly());
 
         builder.Services.AddProblemDetails();
         builder.Services.AddControllers()
@@ -41,7 +38,6 @@ public class Program
         builder.Services.AddDateOnlyTimeOnlyStringConverters();
 
         builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
-        builder.Services.AddMediatRWithValidation(Assembly.GetExecutingAssembly());
 
         builder.Services.AddTransient<IAssetService, AssetService>();
 
@@ -59,10 +55,9 @@ public class Program
         }
 
         app.UseHttpsRedirection();
-
         app.UseAuthorization();
 
-
+        app.AddInfrastructureMiddleware();
         app.MapControllers();
 
         app.ApplyDatabaseMigrations<InvoiceDbContext>();
