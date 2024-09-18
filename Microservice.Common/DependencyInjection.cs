@@ -42,7 +42,7 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("WebApiDatabase");
 
         services.AddDbContext<TContext>(o => o.UseSqlite(connectionString));
-        services.AddScoped<DbContext, TContext>();
+        services.AddScoped<DbContext>(x => x.GetRequiredService<TContext>());
         services.AddScoped<IBaseDbContext>(x => x.GetRequiredService<TContext>());
 
         // Repositories

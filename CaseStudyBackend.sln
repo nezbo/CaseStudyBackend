@@ -24,6 +24,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InvoiceAPI.Test", "InvoiceA
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{807428D5-F011-40CC-ABBE-893BF67B012E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Requests", "Requests", "{55270805-2A14-42B0-96DD-7F08D1DAABC5}"
+	ProjectSection(SolutionItems) = preProject
+		invoice.http = invoice.http
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +66,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{55270805-2A14-42B0-96DD-7F08D1DAABC5} = {A4A19C10-D2D8-43E0-AE39-07AD0877DA95}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5BC799C7-13E1-4BC8-82E5-2400DF0CC2EB}

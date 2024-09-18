@@ -12,19 +12,7 @@ public class GenericRepository<T>(IBaseDbContext dbContext)
     protected IBaseDbContext Context { get; } = dbContext;
     protected DbSet<T> DbSet => Context.GetSet<T>();
 
-    public async Task AddAsync(T entity)
-    {
-        await DbSet.AddAsync(entity);
-    }
-
-    public async Task DeleteAsync(Guid id)
-    {
-        var entity = await DbSet.FindAsync(id);
-        if(entity != null)
-        {
-            DbSet.Remove(entity);
-        }
-    }
+    #region Read
 
     public async Task<T?> GetByIdAsync(Guid id)
     {
@@ -43,13 +31,34 @@ public class GenericRepository<T>(IBaseDbContext dbContext)
         return Task.FromResult(DbSet.AsEnumerable());
     }
 
-    public Task UpdateAsync(T entity)
+    #endregion
+
+    #region Write
+
+    public async Task AddAsync(T entity)
+    {
+        await DbSet.AddAsync(entity);
+        await Context.SaveChangesAsync();
+    }
+
+    public async Task UpdateAsync(T entity)
     {
         if (entity != null)
         {
             DbSet.Update(entity);
+            await Context.SaveChangesAsync();
         }
-
-        return Task.CompletedTask;
     }
+
+    public async Task DeleteAsync(Guid id)
+    {
+        var entity = await DbSet.FindAsync(id);
+        if (entity != null)
+        {
+            DbSet.Remove(entity);
+            await Context.SaveChangesAsync();
+        }
+    }
+
+    #endregion
 }

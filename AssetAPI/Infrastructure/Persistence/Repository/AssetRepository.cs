@@ -5,12 +5,9 @@ using Microservice.Common.Infrastructure.Repository;
 
 namespace AssetAPI.Infrastructure.Persistence.Repository;
 
-public class AssetRepository : GenericRepository<Asset>, IAssetRepository
+public class AssetRepository(IBaseDbContext dbContext) 
+    : GenericRepository<Asset>(dbContext), IAssetRepository
 {
-    public AssetRepository(IBaseDbContext dbContext) : base(dbContext)
-    {
-    }
-
     public new Task<IEnumerable<Asset>> GetByIdsAsync(params Guid[] ids)
     {
         var query = () => DbSet

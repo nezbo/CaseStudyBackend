@@ -16,7 +16,7 @@ namespace InvoiceAPI.Presentation.Controllers
         private readonly IMapper _mapper = mapper;
 
         [HttpPost("ByAssets")]
-        public virtual async Task<IActionResult> CreateByAssets([FromBody] InvoiceDto invoice, [FromQuery] IEnumerable<Guid> assetIds)
+        public virtual async Task<IActionResult> CreateByAssets([FromBody] InvoiceDto invoice, [FromQuery(Name = "ids")] IEnumerable<Guid> assetIds)
         {
             var domainModel = _mapper.Map<Invoice>(invoice);
             var result = await _mediator.Send(new CreateByAssetsCommand { Data = domainModel, AssetIds = assetIds });

@@ -1,0 +1,13 @@
+@host=https://localhost:5062
+
+POST {{host}}/api/v1/invoice/byassets?ids=612b37fc-e751-4b52-8c08-e91c293d19ea&ids=dbfc81bd-8161-4a4a-8d33-1acaed7c5878
+Content-Type: application/json
+
+{
+  "issuingDate": "2024-09-16",
+  "year": 2024,
+  "month": 9,
+  "total": 1337
+}
+
+###

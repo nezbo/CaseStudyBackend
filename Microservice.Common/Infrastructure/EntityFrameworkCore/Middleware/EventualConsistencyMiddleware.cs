@@ -19,14 +19,12 @@ public class EventualConsistencyMiddleware(RequestDelegate next)
         {
             try
             {
-                await dbContext.SaveChangesAsync();
                 if (context.Items.TryGetValue(DomainEventsKey, out var value)
                     && value is Queue<IDomainEvent> domainEvents)
                 {
                     while(domainEvents.TryDequeue(out var nextEvent))
                     {
                         await publisher.Publish(nextEvent);
-                        await dbContext.SaveChangesAsync();
                     }
                 }
                 
