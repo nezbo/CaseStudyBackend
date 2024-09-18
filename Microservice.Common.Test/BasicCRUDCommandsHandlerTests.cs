@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using ErrorOr;
+using FluentAssertions;
 using Microservice.Common.Application.Features;
 using Microservice.Common.Application.Repository;
 using Microservice.Common.Domain.Models;
@@ -16,7 +17,7 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TDomain> : BaseTes
         // IGenericRepository
         Container.Resolve<IGenericRepository<TDomain>>()
             .GetByIdAsync(Arg.Any<Guid>())
-            .Returns(x => Task.FromResult<TDomain?>(InstantiateEntity(x.Arg<Guid>())));
+            .Returns(x => Task.FromResult(InstantiateEntity(x.Arg<Guid>()).ToErrorOr()));
     }
 
     protected abstract TDomain InstantiateEntity(Guid id);
@@ -89,7 +90,7 @@ public abstract class BasicCRUDCommandsHandlerTests<THandler, TDomain> : BaseTes
         };
         Container.Resolve<IGenericRepository<TDomain>>()
             .GetByIdsAsync(Arg.Any<Guid[]>())
-            .Returns(x => entities.Where(e => x.Arg<Guid[]>().Contains(e.Id)));
+            .Returns(x => entities.Where(e => x.Arg<Guid[]>().Contains(e.Id)).ToErrorOr());
 
         // Act
         var query = entities.Select(e => e.Id).Append(Guid.NewGuid()).ToArray();

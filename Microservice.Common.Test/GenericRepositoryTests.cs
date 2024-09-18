@@ -58,8 +58,8 @@ public abstract class GenericRepositoryTests<TRepository,TEntity> : BaseTestFixt
         Guid id = GetGuid(idNumber);
         var result = await Sut.GetByIdAsync(id);
 
-        (result != null).Should().Be(expectsMatch);
-        result?.Id.Should().Be(id);
+        result.IsError.Should().Be(!expectsMatch);
+        result.Value?.Id.Should().Be(id);
     }
 
     [Theory]
@@ -72,7 +72,8 @@ public abstract class GenericRepositoryTests<TRepository,TEntity> : BaseTestFixt
 
         var result = await Sut.GetAllAsync();
 
-        result.Should().HaveCount(expectedCount);
+        result.IsError.Should().BeFalse();
+        result.Value.Should().HaveCount(expectedCount);
     }
 
     [Theory]

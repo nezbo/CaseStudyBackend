@@ -10,6 +10,7 @@ using System.Reflection;
 using MoreLinq;
 using Microservice.Common.Extensions;
 using Microservice.Common.Presentation.Extensions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Microservice.Common.Presentation.Controllers;
 
@@ -75,6 +76,12 @@ public class CRUDController<TModel, TDomain>(IMediator mediator, IMapper mapper)
     [HttpPut("{id}")]
     public virtual async Task<IActionResult> Update(Guid id, [FromBody] TModel model)
     {
+        if (id != model.Id)
+        {
+            ErrorOr.Error error = ErrorOr.Error.Validation(description: "Id in body does not match URL.");
+            return this.Problem([error]);
+        }
+
         var domainModel = mapper.Map<TDomain>(model);
         var response = await mediator.Send(new UpdateEntityCommand<TDomain>(id, domainModel));
         return this.MatchOrProblem(response, u => Ok());
@@ -106,8 +113,8 @@ public class CRUDController<TModel, TDomain>(IMediator mediator, IMapper mapper)
     [HttpDelete("{id}")]
     public virtual async Task<ActionResult> Delete(Guid id)
     {
-        await mediator.Send(new DeleteEntityCommand<TDomain>(id));
-        return NoContent();
+        var response = await mediator.Send(new DeleteEntityCommand<TDomain>(id));
+        return this.MatchOrProblem(response, v => NoContent());
     }
 
     protected void SetEditUrl(IHasEditUrl entity)
