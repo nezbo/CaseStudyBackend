@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" />
     <PackageReference Include="DateOnlyTimeOnly.AspNet" />
     <PackageReference Include="ErrorOr" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />

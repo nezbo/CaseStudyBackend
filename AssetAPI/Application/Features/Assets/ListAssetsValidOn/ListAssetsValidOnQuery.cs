@@ -1,14 +1,11 @@
-﻿using AssetAPI.Presentation.Models;
+﻿using AssetAPI.Domain.Models;
+using ErrorOr;
 using MediatR;
 
 namespace AssetAPI.Application.Features.Assets.ListAssetsValidOn;
 
-public class ListAssetsValidOnQuery : IRequest<IEnumerable<AssetDto>>
+public class ListAssetsValidOnQuery(DateOnly validOn) 
+    : IRequest<ErrorOr<IEnumerable<Asset>>>
 {
-    public DateOnly ValidOn { get; set; }
-
-    public ListAssetsValidOnQuery(DateOnly validOn)
-    {
-        ValidOn = validOn;
-    }
+    public DateOnly ValidOn { get; set; } = validOn;
 }

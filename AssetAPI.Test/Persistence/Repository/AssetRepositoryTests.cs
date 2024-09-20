@@ -24,9 +24,10 @@ public class AssetRepositoryTests : GenericRepositoryTests<AssetRepository, Asse
     {
         SetupDbContextSet(3);
 
-        var result = await Sut.GetValidOnAsync(GetDate(testValidOn));
+        var response = await Sut.GetValidOnAsync(GetDate(testValidOn));
 
-        result.Should().HaveCount(expectedCount);
+        response.IsError.Should().BeFalse();
+        response.Value.Should().HaveCount(expectedCount);
     }
 
     [Theory]
@@ -39,9 +40,10 @@ public class AssetRepositoryTests : GenericRepositoryTests<AssetRepository, Asse
         entities.Single().ValidTo = null;
         entities.Single().ValidFrom = null;
 
-        var result = await Sut.GetValidOnAsync(GetDate(testValidOn));
+        var response = await Sut.GetValidOnAsync(GetDate(testValidOn));
 
-        result.Should().HaveCount(expectedCount);
+        response.IsError.Should().BeFalse();
+        response.Value.Should().HaveCount(expectedCount);
     }
 
     private DateOnly GetDate(string dateString)

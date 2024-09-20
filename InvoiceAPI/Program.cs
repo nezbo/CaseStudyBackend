@@ -37,8 +37,6 @@ public class Program
         builder.Services.AddSwaggerGen();
         builder.Services.AddDateOnlyTimeOnlyStringConverters();
 
-        builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
-
         builder.Services.AddTransient<IAssetService, AssetService>();
 
         var app = builder.Build();

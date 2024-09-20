@@ -1,30 +1,35 @@
-﻿using AutoMapper;
-using ErrorOr;
+﻿using ErrorOr;
 using MediatR;
 using Microservice.Common.Application.Features;
 using Microservice.Common.Domain.Models;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.Mvc;
-using System.Net;
-using System.Reflection;
-using MoreLinq;
 using Microservice.Common.Extensions;
 using Microservice.Common.Presentation.Extensions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
+using MoreLinq;
+using System.Net;
+using System.Reflection;
 
 namespace Microservice.Common.Presentation.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-public class CRUDController<TModel, TDomain>(IMediator mediator, IMapper mapper) : ControllerBase
+public abstract class CRUDController<TModel, TDomain>(IMediator mediator) : ControllerBase
     where TModel : class, IIdentity
     where TDomain : AggregateRoot
 {
+    protected abstract ErrorOr<TDomain> MapToDomain(TModel model);
+    protected abstract TModel MapFromDomain(TDomain model);
+
     [HttpPost]
     public virtual async Task<IActionResult> Create([FromBody] TModel model)
     {
-        var domainModel = mapper.Map<TDomain>(model);
-        var response = await mediator.Send(new CreateEntityCommand<TDomain>(domainModel));
+        var domainModel = this.MapToDomain(model);
+
+        if (domainModel.IsError)
+            return this.Problem(domainModel.Errors);
+
+        var response = await mediator.Send(new CreateEntityCommand<TDomain>(domainModel.Value));
 
         return this.MatchOrProblem(response, obj => CreatedAtAction(nameof(Read), new { obj.Id }, obj));
     }
@@ -32,7 +37,6 @@ public class CRUDController<TModel, TDomain>(IMediator mediator, IMapper mapper)
     [HttpGet]
     public virtual async Task<IActionResult> List([FromQuery] IEnumerable<Guid> ids)
     {
-        IEnumerable<TModel>? result;
         ErrorOr<IEnumerable<TDomain>> response;
         if (!ids.Any())
         {
@@ -43,13 +47,7 @@ public class CRUDController<TModel, TDomain>(IMediator mediator, IMapper mapper)
             response = await mediator.Send(new ListEntitiesQuery<TDomain>(ids));
         }
 
-        if (response.IsError)
-            return this.Problem(response.Errors);
-
-        result = mapper.Map<IEnumerable<TModel>>(response.Value);
-        result.OfType<IHasEditUrl>().ForEach(SetEditUrl);
-
-        return Ok(result);
+        return this.MatchOrProblem(response);
     }
 
     [HttpGet("{id}")]
@@ -61,16 +59,8 @@ public class CRUDController<TModel, TDomain>(IMediator mediator, IMapper mapper)
         {
             Response.StatusCode = (int)HttpStatusCode.NotFound;
         }
-        else
-        {
-            var result = mapper.Map<TModel>(response);
-            if(result is IHasEditUrl hasUrl)
-                SetEditUrl(hasUrl);
-
-            return Ok(result);
-        }
-
-        return this.Problem(response.Errors);
+        
+        return this.MatchOrProblem(response);
     }
 
     [HttpPut("{id}")]
@@ -82,8 +72,12 @@ public class CRUDController<TModel, TDomain>(IMediator mediator, IMapper mapper)
             return this.Problem([error]);
         }
 
-        var domainModel = mapper.Map<TDomain>(model);
-        var response = await mediator.Send(new UpdateEntityCommand<TDomain>(id, domainModel));
+        var domainModel = this.MapToDomain(model);
+
+        if (domainModel.IsError)
+            return this.Problem(domainModel.Errors);
+
+        var response = await mediator.Send(new UpdateEntityCommand<TDomain>(id, domainModel.Value));
         return this.MatchOrProblem(response, u => Ok());
     }
 
@@ -97,9 +91,9 @@ public class CRUDController<TModel, TDomain>(IMediator mediator, IMapper mapper)
             if (domainModel.IsError)
                 return Problem();
 
-            var dto = mapper.Map<TModel>(domainModel);
+            var dto = this.MapFromDomain(domainModel.Value);
             patchDoc.ApplyTo(dto);
-            domainModel = mapper.Map<TDomain>(dto);
+            domainModel = this.MapToDomain(dto);
             var response = await mediator.Send(new UpdateEntityCommand<TDomain>(id, domainModel.Value));
 
             return this.MatchOrProblem(response, u => Ok());
@@ -117,12 +111,46 @@ public class CRUDController<TModel, TDomain>(IMediator mediator, IMapper mapper)
         return this.MatchOrProblem(response, v => NoContent());
     }
 
+    #region Helpers
+
+    protected ActionResult MatchOrProblem(ErrorOr<TDomain> domain)
+    {
+        return this.MatchOrProblem(domain, OkFromDomain);
+    }
+
+    protected ActionResult OkFromDomain(TDomain domain)
+    {
+        var dto = this.MapFromDomain(domain);
+        if (dto is IHasEditUrl editUrl)
+            this.SetEditUrl(editUrl);
+        return Ok(dto);
+    }
+
+    protected ActionResult MatchOrProblem(ErrorOr<IEnumerable<TDomain>> entities)
+    {
+        return this.MatchOrProblem(entities, OkFromDomain);
+    }
+
+    protected ActionResult OkFromDomain(IEnumerable<TDomain> entities)
+    {
+        var result = entities.Select(this.MapFromDomain)
+            .ForEachThen(this.TrySetEditUrl)
+            .ToList();
+        return Ok(result);
+    }
+
+    protected void TrySetEditUrl<T>(T entity)
+    {
+        if (entity is IHasEditUrl editUrl)
+            this.SetEditUrl(editUrl);
+    }
+
     protected void SetEditUrl(IHasEditUrl entity)
     {
         var controllerName = entity.GetType().Name.TrimEnd("Dto");
         entity.EditUrl = Url.ActionLink(
             controller: controllerName,
-            action: nameof(Update), 
+            action: nameof(Update),
             values: new { id = entity.Id })!;
 
         // Nested entities
@@ -151,4 +179,6 @@ public class CRUDController<TModel, TDomain>(IMediator mediator, IMapper mapper)
 
         return direct.Union(sequences);
     }
+
+    #endregion
 }

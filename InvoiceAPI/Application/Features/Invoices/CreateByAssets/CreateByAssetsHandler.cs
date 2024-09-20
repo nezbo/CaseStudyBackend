@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using ErrorOr;
+﻿using ErrorOr;
 using InvoiceAPI.Application.External;
 using InvoiceAPI.Application.External.Models;
 using InvoiceAPI.Domain.Errors;
