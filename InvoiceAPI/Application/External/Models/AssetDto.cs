@@ -2,7 +2,7 @@
 
 namespace InvoiceAPI.Application.External.Models;
 
-public record AssetDto : IIdentity
+public record AssetDto : IGetIdentity
 {
     public Guid Id { get; set; }
     public required string Name { get; set; }

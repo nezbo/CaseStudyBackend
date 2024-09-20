@@ -21,7 +21,7 @@ public abstract class BaseDbContext<TContext> : DbContext, IBaseDbContext
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public DbSet<T> GetSet<T>() where T : class, IIdentity
+    public DbSet<T> GetSet<T>() where T : class, IGetIdentity
     {
         return Set<T>();
     }

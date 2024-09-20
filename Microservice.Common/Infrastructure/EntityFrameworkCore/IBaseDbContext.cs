@@ -6,5 +6,5 @@ namespace Microservice.Common.Infrastructure.EntityFrameworkCore;
 public interface IBaseDbContext
 {
     Task<int> SaveChangesAsync(CancellationToken token = default);
-    DbSet<T> GetSet<T>() where T : class, IIdentity;
+    DbSet<T> GetSet<T>() where T : class, IGetIdentity;
 }

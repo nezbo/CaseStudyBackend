@@ -11,13 +11,6 @@ public class InvoiceCRUDCommandsHandlerTests
     protected override Invoice InstantiateEntity(Guid id)
     {
         ushort month = Convert.ToUInt16((Math.Abs(id.GetHashCode()) % 12) + 1);
-        return new Invoice
-        {
-            Id = id,
-            IssuingDate = new DateOnly(2024, month, 1),
-            Year = 2024,
-            Month = month,
-            Total = 1337,
-        };
+        return Invoice.Create(id, new DateOnly(2024, month, 1), 2024, month, 1337).Value;
     }
 }

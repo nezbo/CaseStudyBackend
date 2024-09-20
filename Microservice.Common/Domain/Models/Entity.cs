@@ -2,7 +2,7 @@
 
 namespace Microservice.Common.Domain.Models;
 
-public abstract class Entity(Guid? id) : IIdentity
+public abstract class Entity(Guid? id) : IGetIdentity
 {
     [Key]
     public Guid Id { get; set; } = id ?? Guid.Empty;

@@ -6,18 +6,8 @@ namespace AssetAPI.Presentation.Mapping;
 
 public static class AssetMapper
 {
-    public static ErrorOr<Asset> ToDomain(this AssetDto dto)
-    {
-        var result = new Asset(dto.Id)
-        {
-            Name = dto.Name,
-            ValidFrom = dto.ValidFrom,
-            ValidTo = dto.ValidTo,
-        };
-        result.SetPrice(dto.Price);
-
-        return result;
-    }
+    public static ErrorOr<Asset> ToDomain(this AssetDto dto) 
+        => Asset.Create(dto.Id, dto.Name, dto.Price, dto.ValidFrom, dto.ValidTo);
 
     public static AssetDto ToDto(this Asset asset)
     {

@@ -8,13 +8,22 @@ public static class InvoiceMapper
 {
     public static ErrorOr<Invoice> ToDomain(this InvoiceDto dto)
     {
-        var result = Invoice.Create(dto.IssuingDate, dto.Year, dto.Month, dto.Total);
-        IEnumerable<ErrorOr<Service>> services = dto.Services.Select(s => s.ToDomain());
+        var result = Invoice.Create(dto.Id, dto.IssuingDate, dto.Year, dto.Month, dto.Total);
+        IEnumerable<ErrorOr<Service>> services = dto.Services.Select(s => s.ToDomain(dto.Id));
 
         if (result.IsError || services.Any(s => s.IsError))
             return result.Errors
                 .Union(services.SelectMany(s => s.Errors))
                 .ToList();
+
+        // Add Services
+        var addErrors = services.Select(s => result.Value.AddService(s.Value))
+            .Where(s => s.IsError)
+            .SelectMany(s => s.Errors)
+            .ToList();
+
+        if(addErrors.Count != 0)
+            return addErrors;
 
         return result;
     }

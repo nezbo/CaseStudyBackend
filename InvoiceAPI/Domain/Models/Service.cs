@@ -4,16 +4,17 @@ using Microservice.Common.Domain.Models;
 
 namespace InvoiceAPI.Domain.Models;
 
-public class Service(Guid? id) : Entity(id)
+public class Service : Entity
 {
-    public Guid InvoiceId { get; set; }
+    public Guid InvoiceId { get; private set; }
 
     public string Name { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public DateOnly? ValidFrom { get; set; }
-    public DateOnly? ValidTo { get; set; }
+    public decimal Price { get; private set; }
+    public DateOnly? ValidFrom { get; private set; }
+    public DateOnly? ValidTo { get; private set; }
 
     public Service() : this(null) { }
+    private Service(Guid? id) : base(id) { }
 
     public static ErrorOr<Service> Create(Guid invoiceId, 
         string name, 
@@ -24,6 +25,8 @@ public class Service(Guid? id) : Entity(id)
         if (validFrom.HasValue && validTo.HasValue
             && validTo < validFrom)
             return ServiceErrors.ValidToMustBeAfterValidFrom;
+        if (price < 0)
+            return ServiceErrors.PriceCanNotBeNegative;
 
         return new Service
         {

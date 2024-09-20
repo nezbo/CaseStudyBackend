@@ -4,6 +4,7 @@ using Microservice.Common.Application.Features;
 using Microservice.Common.Domain.Models;
 using Microservice.Common.Extensions;
 using Microservice.Common.Presentation.Extensions;
+using Microservice.Common.Presentation.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
@@ -24,6 +25,9 @@ public abstract class CRUDController<TModel, TDomain>(IMediator mediator) : Cont
     [HttpPost]
     public virtual async Task<IActionResult> Create([FromBody] TModel model)
     {
+        if (model.Id == default)
+            model.Id = Guid.NewGuid();
+
         var domainModel = this.MapToDomain(model);
 
         if (domainModel.IsError)
@@ -68,7 +72,7 @@ public abstract class CRUDController<TModel, TDomain>(IMediator mediator) : Cont
     {
         if (id != model.Id)
         {
-            ErrorOr.Error error = ErrorOr.Error.Validation(description: "Id in body does not match URL.");
+            Error error = Error.Validation(description: "Id in body does not match URL.");
             return this.Problem([error]);
         }
 

@@ -8,13 +8,11 @@ namespace AssetAPI.Test.Persistence.Repository;
 public class AssetRepositoryTests : GenericRepositoryTests<AssetRepository, Asset>
 {
     protected override Asset InstantiateEntity(int entityNumber, Guid id)
-    {
-        return new Asset(id)
-        {
-            ValidFrom = entityNumber >= 2 ? GetDate("2020-01-01") : null,
-            ValidTo = entityNumber <= 2 ? GetDate("2022-01-01") : null,
-        };
-    }
+        => Asset.Create(id,
+                        entityNumber.ToString(),
+                        0M,
+                        entityNumber >= 2 ? GetDate("2020-01-01") : null,
+                        entityNumber <= 2 ? GetDate("2022-01-01") : null).Value;
 
     [Theory]
     [InlineData("2021-01-01", 3)]

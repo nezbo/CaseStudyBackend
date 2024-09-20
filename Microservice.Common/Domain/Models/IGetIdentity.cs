@@ -1,6 +1,6 @@
 ﻿namespace Microservice.Common.Domain.Models;
 
-public interface IIdentity
+public interface IGetIdentity
 {
     Guid Id { get; }
 }

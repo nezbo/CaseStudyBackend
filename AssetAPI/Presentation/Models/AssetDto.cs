@@ -1,5 +1,5 @@
-﻿using Microservice.Common.Domain.Models;
-using Microservice.Common.Presentation.Controllers;
+﻿using Microservice.Common.Presentation.Controllers;
+using Microservice.Common.Presentation.Models;
 
 namespace AssetAPI.Presentation.Models;
 

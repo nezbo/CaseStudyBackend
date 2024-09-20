@@ -9,14 +9,7 @@ public class InvoiceRepositoryTests : GenericRepositoryTests<InvoiceRepository, 
     protected override Invoice InstantiateEntity(int entityNumber, Guid id)
     {
         var date = GetDate($"2020-01-{entityNumber:D2}");
-        return new Invoice
-        {
-            Id = id,
-            Year = (ushort)date.Year,
-            Month = (ushort)date.Month,
-            IssuingDate = date,
-            Total = 100,
-        };
+        return Invoice.Create(id, date, (ushort)date.Year, (ushort)date.Month, 100).Value;
     }
 
     private static DateOnly GetDate(string dateString)

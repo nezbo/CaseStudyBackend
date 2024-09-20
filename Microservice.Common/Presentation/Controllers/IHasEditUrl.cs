@@ -2,7 +2,7 @@
 
 namespace Microservice.Common.Presentation.Controllers;
 
-public interface IHasEditUrl : IIdentity
+public interface IHasEditUrl : IGetIdentity
 {
     public string? EditUrl { get; set; }
 }
