@@ -1,13 +1,9 @@
 using InvoiceAPI.Application.External;
-using InvoiceAPI.Application.Repository;
 using InvoiceAPI.Infrastructure.External;
 using InvoiceAPI.Infrastructure.Persistence;
-using InvoiceAPI.Infrastructure.Persistence.Repository;
 using Microservice.Common;
 using Microservice.Common.Application.Extensions;
 using Microservice.Common.Application.OpenTelemetry.Extensions;
-using Microservice.Common.Application.Repository;
-using Microservice.Common.Infrastructure.Repository;
 using System.Reflection;
 
 namespace InvoiceAPI;
@@ -18,15 +14,13 @@ public class Program
     {
         string serviceName = typeof(Program).Namespace!;
         var builder = WebApplication.CreateBuilder(args);
-        builder.AddOpenTelemetry(serviceName, builder.Configuration.GetValue<string>("OTLP_Endpoint")!);
-
         builder.Configuration
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .AddEnvironmentVariables();
 
         // Add services to the container.
-
+        builder.AddOpenTelemetry(serviceName, builder.Configuration.GetValue<string>("OTLP_Endpoint")!);
         builder.Services.AddHttpClient();
         builder.Services.AddInfrastructure<InvoiceDbContext>(Assembly.GetExecutingAssembly());
 

@@ -5,7 +5,7 @@ namespace InvoiceAPI.Presentation.Models;
 
 public record InvoiceDto : IIdentity, IHasEditUrl
 {
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
     public DateOnly IssuingDate { get; set; }
     public ushort Year { get; set; }
     public ushort Month { get; set; }

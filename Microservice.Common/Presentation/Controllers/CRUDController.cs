@@ -35,7 +35,7 @@ public abstract class CRUDController<TModel, TDomain>(IMediator mediator) : Cont
 
         var response = await mediator.Send(new CreateEntityCommand<TDomain>(domainModel.Value));
 
-        return this.MatchOrProblem(response, obj => CreatedAtAction(nameof(Read), new { obj.Id }, obj));
+        return this.MatchOrProblem(response, obj => CreatedAtAction(nameof(Read), new { obj.Id }, MapFromDomain(obj)));
     }
 
     [HttpGet]

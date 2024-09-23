@@ -6,19 +6,30 @@ using Microsoft.Extensions.Configuration;
 
 namespace Microservice.Common.Infrastructure.EntityFrameworkCore;
 
-public abstract class BaseDbContext<TContext> : DbContext, IBaseDbContext
+public abstract class BaseDbContext<TContext>(DbContextOptions<TContext> options, IHttpContextAccessor httpContextAccessor) 
+    : DbContext(options), IBaseDbContext
     where TContext : DbContext
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
-    public BaseDbContext(IHttpContextAccessor httpContextAccessor) : base()
-    {
-        _httpContextAccessor = httpContextAccessor;
+    public static DbContextOptions<TContext> DefaultOptions 
+    { 
+        get 
+        {
+            var builder = new DbContextOptionsBuilder<TContext>();
+            ApplyDefaultOptions(builder);
+            return builder.Options; 
+        } 
     }
-
-    public BaseDbContext(DbContextOptions<TContext> options, IHttpContextAccessor httpContextAccessor) : base(options)
+    
+    public static void ApplyDefaultOptions(DbContextOptionsBuilder options)
     {
-        _httpContextAccessor = httpContextAccessor;
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json")
+            .Build();
+        var connectionString = configuration.GetConnectionString("WebApiDatabase");
+        options.UseSqlite(connectionString);
     }
 
     public DbSet<T> GetSet<T>() where T : class, IGetIdentity

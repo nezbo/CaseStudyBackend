@@ -35,13 +35,7 @@ public static class DependencyInjection
         where TContext : DbContext, IBaseDbContext
     {
         // DbContext
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json")
-            .Build();
-        var connectionString = configuration.GetConnectionString("WebApiDatabase");
-
-        services.AddDbContext<TContext>(o => o.UseSqlite(connectionString));
+        services.AddDbContext<TContext>(BaseDbContext<TContext>.ApplyDefaultOptions);
         services.AddScoped<DbContext>(x => x.GetRequiredService<TContext>());
         services.AddScoped<IBaseDbContext>(x => x.GetRequiredService<TContext>());
 

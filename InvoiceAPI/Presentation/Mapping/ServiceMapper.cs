@@ -8,7 +8,7 @@ public static class ServiceMapper
 {
     public static ErrorOr<Service> ToDomain(this ServiceDto dto, Guid invoiceId)
     {
-        return Service.Create(invoiceId, dto.Name, dto.Price, dto.ValidFrom, dto.ValidTo);
+        return Service.Create(invoiceId, dto.AssetId, dto.Name, dto.Price, dto.ValidFrom, dto.ValidTo);
     }
 
     public static ServiceDto ToDto(this Service service)
@@ -16,6 +16,7 @@ public static class ServiceMapper
         return new ServiceDto
         {
             Id = service.Id,
+            AssetId = service.AssetId,
             Name = service.Name,
             Price = service.Price,
             ValidFrom = service.ValidFrom,

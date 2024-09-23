@@ -7,6 +7,7 @@ namespace InvoiceAPI.Domain.Models;
 public class Service : Entity
 {
     public Guid InvoiceId { get; private set; }
+    public Guid AssetId { get; private set; }
 
     public string Name { get; set; } = string.Empty;
     public decimal Price { get; private set; }
@@ -16,7 +17,9 @@ public class Service : Entity
     public Service() : this(null) { }
     private Service(Guid? id) : base(id) { }
 
-    public static ErrorOr<Service> Create(Guid invoiceId, 
+    public static ErrorOr<Service> Create(
+        Guid invoiceId,
+        Guid assetId,
         string name, 
         decimal price, 
         DateOnly? validFrom, 
@@ -31,6 +34,7 @@ public class Service : Entity
         return new Service
         {
             InvoiceId = invoiceId,
+            AssetId = assetId,
             Name = name,
             Price = price,
             ValidFrom = validFrom,

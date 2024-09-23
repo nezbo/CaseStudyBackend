@@ -16,13 +16,13 @@ namespace AssetAPI
         {
             string serviceName = typeof(Program).Namespace!;
             var builder = WebApplication.CreateBuilder(args);
-            builder.AddOpenTelemetry(serviceName, builder.Configuration.GetValue<string>("OTLP_Endpoint")!);
 
             builder.Configuration
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables();
 
+            builder.AddOpenTelemetry(serviceName, builder.Configuration.GetValue<string>("OTLP_Endpoint")!);
             builder.Services.AddInfrastructure<ApiDbContext>(Assembly.GetExecutingAssembly());
 
             builder.Services.AddProblemDetails();

@@ -1,7 +1,6 @@
 ﻿using ErrorOr;
 using InvoiceAPI.Application.External;
 using InvoiceAPI.Application.External.Models;
-using InvoiceAPI.Domain.Errors;
 using InvoiceAPI.Domain.Models;
 using MediatR;
 using Microservice.Common.Application.Features;
@@ -50,6 +49,6 @@ public class CreateByAssetsHandler(
 
     private static ErrorOr<Service> MapAssetToService(AssetDto asset, Guid invoiceId)
     {
-        return Service.Create(invoiceId, asset.Name, asset.Price, asset.ValidFrom, asset.ValidTo);
+        return Service.Create(invoiceId, asset.Id, asset.Name, asset.Price, asset.ValidFrom, asset.ValidTo);
     }
 }

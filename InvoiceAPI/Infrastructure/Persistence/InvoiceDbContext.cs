@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InvoiceAPI.Infrastructure.Persistence;
 
-public class InvoiceDbContext(DbContextOptions<InvoiceDbContext> options, IHttpContextAccessor httpContextAccessor) 
-    : BaseDbContext<InvoiceDbContext>(options, httpContextAccessor)
+public class InvoiceDbContext(DbContextOptions<InvoiceDbContext> options, IHttpContextAccessor httpContextAccessor)
+        : BaseDbContext<InvoiceDbContext>(options, httpContextAccessor)
 {
     public DbSet<Invoice> Invoices { get; set; }
     public DbSet<Service> Services { get; set; }
