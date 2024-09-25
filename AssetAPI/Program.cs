@@ -23,7 +23,7 @@ namespace AssetAPI
                 .AddEnvironmentVariables();
 
             builder.AddOpenTelemetry(serviceName, builder.Configuration.GetValue<string>("OTLP_Endpoint")!);
-            builder.Services.AddInfrastructure<ApiDbContext>(Assembly.GetExecutingAssembly());
+            builder.Services.AddInfrastructure<ApiDbContext>(builder.Configuration, Assembly.GetExecutingAssembly());
 
             builder.Services.AddProblemDetails();
             builder.Services.AddControllers()

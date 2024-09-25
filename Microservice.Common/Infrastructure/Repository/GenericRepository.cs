@@ -1,5 +1,7 @@
 ﻿using ErrorOr;
+using MediatR;
 using Microservice.Common.Application.Repository;
+using Microservice.Common.Domain.Events;
 using Microservice.Common.Domain.Models;
 using Microservice.Common.Infrastructure.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +13,7 @@ public class GenericRepository<T>(IBaseDbContext dbContext)
     where T : Entity
 {
     protected IBaseDbContext Context { get; } = dbContext;
+
     protected DbSet<T> DbSet => Context.GetSet<T>();
 
     #region Read

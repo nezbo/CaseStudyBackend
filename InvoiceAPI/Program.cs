@@ -22,7 +22,7 @@ public class Program
         // Add services to the container.
         builder.AddOpenTelemetry(serviceName, builder.Configuration.GetValue<string>("OTLP_Endpoint")!);
         builder.Services.AddHttpClient();
-        builder.Services.AddInfrastructure<InvoiceDbContext>(Assembly.GetExecutingAssembly());
+        builder.Services.AddInfrastructure<InvoiceDbContext>(builder.Configuration,Assembly.GetExecutingAssembly());
 
         builder.Services.AddProblemDetails();
         builder.Services.AddControllers()

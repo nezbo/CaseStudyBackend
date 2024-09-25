@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Microservice.Common.Domain.Models;
+namespace Microservice.Common.Domain.Events;
 public interface IDomainEvent : INotification
 {
 }

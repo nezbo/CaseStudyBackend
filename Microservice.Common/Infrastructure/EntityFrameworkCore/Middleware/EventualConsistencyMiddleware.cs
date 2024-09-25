@@ -1,6 +1,6 @@
 ﻿using MediatR;
+using Microservice.Common.Domain.Events;
 using Microservice.Common.Domain.Exceptions;
-using Microservice.Common.Domain.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 

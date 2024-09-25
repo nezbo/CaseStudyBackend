@@ -1,4 +1,6 @@
-﻿namespace Microservice.Common.Domain.Models;
+﻿using Microservice.Common.Domain.Events;
+
+namespace Microservice.Common.Domain.Models;
 public abstract class AggregateRoot(Guid? id) : Entity(id)
 {
     protected readonly List<IDomainEvent> _domainEvents = [];

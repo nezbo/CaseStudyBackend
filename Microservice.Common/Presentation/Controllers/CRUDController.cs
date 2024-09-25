@@ -35,7 +35,7 @@ public abstract class CRUDController<TModel, TDomain>(IMediator mediator) : Cont
 
         var response = await mediator.Send(new CreateEntityCommand<TDomain>(domainModel.Value));
 
-        return this.MatchOrProblem(response, obj => CreatedAtAction(nameof(Read), new { obj.Id }, MapFromDomain(obj)));
+        return this.MatchOrProblem(response, obj => CreatedAtAction(nameof(Read), new { obj.Id }, TrySetEditUrl(MapFromDomain(obj))));
     }
 
     [HttpGet]
@@ -138,15 +138,16 @@ public abstract class CRUDController<TModel, TDomain>(IMediator mediator) : Cont
     protected ActionResult OkFromDomain(IEnumerable<TDomain> entities)
     {
         var result = entities.Select(this.MapFromDomain)
-            .ForEachThen(this.TrySetEditUrl)
+            .ForEachThen(e => this.TrySetEditUrl(e))
             .ToList();
         return Ok(result);
     }
 
-    protected void TrySetEditUrl<T>(T entity)
+    protected T TrySetEditUrl<T>(T entity)
     {
         if (entity is IHasEditUrl editUrl)
             this.SetEditUrl(editUrl);
+        return entity;
     }
 
     protected void SetEditUrl(IHasEditUrl entity)

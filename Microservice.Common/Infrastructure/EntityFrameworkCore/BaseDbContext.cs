@@ -1,4 +1,5 @@
-﻿using Microservice.Common.Domain.Models;
+﻿using Microservice.Common.Domain.Events;
+using Microservice.Common.Domain.Models;
 using Microservice.Common.Infrastructure.EntityFrameworkCore.Middleware;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,8 @@ public abstract class BaseDbContext<TContext>(DbContextOptions<TContext> options
     where TContext : DbContext
 {
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+
+    public DbSet<IntegrationEvent> Outbox { get; set; }
 
     public static DbContextOptions<TContext> DefaultOptions 
     { 
@@ -46,14 +49,17 @@ public abstract class BaseDbContext<TContext>(DbContextOptions<TContext> options
 
         var result = await base.SaveChangesAsync(cancellationToken);
 
-        Queue<IDomainEvent> domainEventsQueue = _httpContextAccessor.HttpContext!.Items
-            .TryGetValue(EventualConsistencyMiddleware.DomainEventsKey, out var value)
-                && value is Queue<IDomainEvent> existingDomainEvents
-                ? existingDomainEvents
-                : new();
+        if (domainEvents.Count > 0)
+        {
+            Queue<IDomainEvent> domainEventsQueue = _httpContextAccessor.HttpContext!.Items
+                .TryGetValue(EventualConsistencyMiddleware.DomainEventsKey, out var value)
+                    && value is Queue<IDomainEvent> existingDomainEvents
+                    ? existingDomainEvents
+                    : new();
 
-        domainEvents.ForEach(domainEventsQueue.Enqueue);
-        _httpContextAccessor.HttpContext.Items[EventualConsistencyMiddleware.DomainEventsKey] = domainEventsQueue;
+            domainEvents.ForEach(domainEventsQueue.Enqueue);
+            _httpContextAccessor.HttpContext.Items[EventualConsistencyMiddleware.DomainEventsKey] = domainEventsQueue;
+        }
 
         return result;
     }

@@ -20,6 +20,15 @@ services:
       OTLP_Endpoint: http://otel-collector:4317
       ASSET_API_URL: http://assetapi:80
 
+  # Message Broker
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: 'rabbitmq'
+    expose:
+      - "5672"
+    ports:
+      - "15672:15672"
+
   # Monitoring
   jaeger:
     image: jaegertracing/all-in-one:1.58.0

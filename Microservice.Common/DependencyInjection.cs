@@ -1,32 +1,40 @@
-﻿using Microservice.Common.Application.Repository;
-using Microservice.Common.Extensions;
+﻿using Microservice.Common.Domain.Events;
 using Microservice.Common.Infrastructure.EntityFrameworkCore;
 using Microservice.Common.Infrastructure.EntityFrameworkCore.Middleware;
+using Microservice.Common.Infrastructure.Events;
 using Microservice.Common.Infrastructure.Repository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using MoreLinq;
 using System.Reflection;
 
 namespace Microservice.Common;
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure<TContext>(this IServiceCollection services, Assembly applicationAssembly)
+    public static IServiceCollection AddInfrastructure<TContext>(this IServiceCollection services, IConfiguration configuration, Assembly applicationAssembly)
         where TContext : DbContext, IBaseDbContext
     {
-        services.AddServices(applicationAssembly)
-            .AddPersistence<TContext>(applicationAssembly);
+        services.AddServices(configuration, applicationAssembly)
+            .AddPersistence<TContext>(applicationAssembly)
+            .AddBackgroundServices();
 
         return services;
     }
 
-    public static IServiceCollection AddServices(this IServiceCollection services, Assembly applicationAssembly)
+    public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration, Assembly applicationAssembly)
     {
         services.AddHttpContextAccessor();
-        services.AddMediatR(c => c.RegisterServicesFromAssembly(applicationAssembly));
+        services.AddMediatR(c => c.RegisterServicesFromAssemblies(
+            applicationAssembly, 
+            typeof(DependencyInjection).Assembly));
+
+        // Events
+        var hostName = configuration["Messaging:HostName"];
+        services.AddSingleton(new RabbitMQConnection(hostName!));
+        services.Configure<RabbitMqSettings>(configuration.GetSection("Messaging"));
+        services.AddSingleton<IIntegrationEventPublisher, RabbitMQEventPublisher>();
 
         return services;
     }
@@ -44,6 +52,13 @@ public static class DependencyInjection
             .Where(t => t.BaseType != null && t.BaseType!.IsGenericType)
             .Where(t => t.BaseType!.GetGenericTypeDefinition() == typeof(GenericRepository<>))
             .ForEach(t => t.GetInterfaces().ForEach(i => services.AddScoped(i, t)));
+
+        return services;
+    }
+
+    public static IServiceCollection AddBackgroundServices(this IServiceCollection services)
+    {
+        services.AddHostedService<PublishIntegrationEventsBackgroundService>();
 
         return services;
     }
