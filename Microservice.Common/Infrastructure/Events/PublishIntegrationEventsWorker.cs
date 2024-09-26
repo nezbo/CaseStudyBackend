@@ -1,24 +1,23 @@
-﻿using Microservice.Common.Domain.Events;
+﻿using Microservice.Common.Domain.Events.Producer;
 using Microservice.Common.Infrastructure.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics;
 
 namespace Microservice.Common.Infrastructure.Events;
-public class PublishIntegrationEventsBackgroundService(
+public class PublishIntegrationEventsWorker(
     IServiceScopeFactory serviceScopeFactory,
     IIntegrationEventPublisher integrationEventPublisher,
-    ILogger<PublishIntegrationEventsBackgroundService> logger) 
+    ILogger<PublishIntegrationEventsWorker> logger) 
     : IHostedService
 {
     private Task? _doWorkTask = null;
     private PeriodicTimer? _timer = null!;
-    private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+    private readonly CancellationTokenSource _cts = new();
 
     private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory;
     private readonly IIntegrationEventPublisher _integrationEventPublisher = integrationEventPublisher;
-    private readonly ILogger<PublishIntegrationEventsBackgroundService> _logger = logger;
+    private readonly ILogger<PublishIntegrationEventsWorker> _logger = logger;
 
     public Task StartAsync(CancellationToken cancellationToken)
     {

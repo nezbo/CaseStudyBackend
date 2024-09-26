@@ -20,7 +20,7 @@ public static class WebApplicationBuilderExtensions
             .WithTracing(tracing =>
             {
                 tracing
-                    .AddSource(RabbitMqDiagnostics.ActivitySourceName)
+                    .AddSource(RabbitMQDiagnostics.ActivitySourceName)
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddEntityFrameworkCoreInstrumentation()

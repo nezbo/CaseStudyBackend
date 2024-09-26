@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Microservice.Common.Infrastructure.Events;
 
-public static class RabbitMqDiagnostics
+public static class RabbitMQDiagnostics
 {
     public static readonly string ActivitySourceName = "RabbitMQ";
 

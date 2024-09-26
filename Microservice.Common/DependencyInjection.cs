@@ -1,4 +1,6 @@
-﻿using Microservice.Common.Domain.Events;
+﻿using MediatR;
+using Microservice.Common.Application.Features.Events;
+using Microservice.Common.Domain.Events.Producer;
 using Microservice.Common.Infrastructure.EntityFrameworkCore;
 using Microservice.Common.Infrastructure.EntityFrameworkCore.Middleware;
 using Microservice.Common.Infrastructure.Events;
@@ -7,7 +9,10 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MoreLinq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Microservice.Common;
@@ -18,7 +23,7 @@ public static class DependencyInjection
     {
         services.AddServices(configuration, applicationAssembly)
             .AddPersistence<TContext>(applicationAssembly)
-            .AddBackgroundServices();
+            .AddBackgroundServices(applicationAssembly);
 
         return services;
     }
@@ -33,8 +38,9 @@ public static class DependencyInjection
         // Events
         var hostName = configuration["Messaging:HostName"];
         services.AddSingleton(new RabbitMQConnection(hostName!));
-        services.Configure<RabbitMqSettings>(configuration.GetSection("Messaging"));
+        services.Configure<RabbitMQSettings>(configuration.GetSection("Messaging"));
         services.AddSingleton<IIntegrationEventPublisher, RabbitMQEventPublisher>();
+        services.AddSingleton<RabbitMQEventSubscriber>();
 
         return services;
     }
@@ -56,11 +62,72 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddBackgroundServices(this IServiceCollection services)
+    public static IServiceCollection AddBackgroundServices(this IServiceCollection services, Assembly applicationAssembly)
     {
-        services.AddHostedService<PublishIntegrationEventsBackgroundService>();
+        // Events
+        services.AddHostedService<PublishIntegrationEventsWorker>();
+        IEnumerable<(string,Type)> subscribedIntegrationEvents = ScanForIntegrationEventHandlers(applicationAssembly);
+        subscribedIntegrationEvents.ForEach(t => AddIntegrationEventWorker(services, t.Item1, t.Item2));
 
         return services;
+    }
+
+    private static void AddIntegrationEventWorker(IServiceCollection collection, string eventKey, Type bodyType)
+    {
+        var methods = typeof(ServiceCollectionHostedServiceExtensions)
+            .GetMethods();
+        var addHostedServiceMethod = methods
+            .Where(m => m.Name == "AddHostedService")
+            .First(m => m.GetParameters().Length == 2); // with implementationFactory
+        var addHostedServiceGenericMethod = addHostedServiceMethod
+            .MakeGenericMethod(typeof(ReceiveIntegrationEventWorker<>)
+                .MakeGenericType(bodyType));
+
+        var factoryReturnType = typeof(ReceiveIntegrationEventWorker<>).MakeGenericType(bodyType);
+        Expression<Func<IServiceProvider,object?>> factory = (IServiceProvider c) => typeof(DependencyInjection)
+            .GetMethod(nameof(GetWorker))!
+            .MakeGenericMethod(bodyType)
+            .Invoke(null, new object?[] { c, eventKey });
+        var typedFactory = Expression.Lambda(Expression.Convert(factory.Body, factoryReturnType), factory.Parameters).Compile();
+
+        addHostedServiceGenericMethod.Invoke(null, [collection, typedFactory]);
+    }
+
+    public static ReceiveIntegrationEventWorker<TBody> GetWorker<TBody>(IServiceProvider services, string eventKey)
+    {
+        return new ReceiveIntegrationEventWorker<TBody>(
+            eventKey,
+            services.GetRequiredService<IMediator>(),
+            services.GetRequiredService<RabbitMQEventSubscriber>(),
+            services.GetRequiredService<IOptions<RabbitMQSettings>>(),
+            services.GetRequiredService<ILogger<ReceiveIntegrationEventWorker<TBody>>>());
+    }
+
+    private static IEnumerable<(string,Type)> ScanForIntegrationEventHandlers(Assembly applicationAssembly)
+    {
+        return applicationAssembly.DefinedTypes
+            .Where(t => t.GetCustomAttribute<IntegrationEventHandlerAttribute>() != null)
+            .Select(t => (GetEventKeyFromAttribute(t), GetEventBodyTypeFromHandler(t)));
+    }
+
+    private static Type GetEventBodyTypeFromHandler(TypeInfo type)
+    {
+
+        var interfaces = type.GetInterfaces()
+            .Union(type.BaseType?.GetInterfaces() ?? []);
+
+        var match = interfaces
+            .First(i => i.Name.Contains("INotificationHandler"));
+
+        return match
+            .GenericTypeArguments[0] // ReceivedIntegrationEvent<TBody>
+            .GenericTypeArguments[0]; // TBody
+    }
+
+    private static string GetEventKeyFromAttribute(TypeInfo type)
+    {
+        var attr = type.GetCustomAttribute<IntegrationEventHandlerAttribute>()!;
+        return $"{attr.EventName}.{attr.EventVersion}";
     }
 
     public static IApplicationBuilder AddInfrastructureMiddleware(this IApplicationBuilder app)

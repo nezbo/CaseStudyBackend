@@ -1,4 +1,5 @@
 ﻿using Microservice.Common.Domain.Events;
+using Microservice.Common.Domain.Events.Producer;
 using Microservice.Common.Domain.Models;
 using Microservice.Common.Infrastructure.EntityFrameworkCore.Middleware;
 using Microsoft.AspNetCore.Http;

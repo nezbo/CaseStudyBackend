@@ -1,7 +1,7 @@
 ﻿using ErrorOr;
 using MediatR;
 using Microservice.Common.Application.Repository;
-using Microservice.Common.Domain.Events;
+using Microservice.Common.Domain.Events.Producer;
 using Microservice.Common.Domain.Models;
 using static Grpc.Core.Metadata;
 
@@ -26,7 +26,7 @@ public abstract class BasicCRUDCommandsHandler<TEntity>
         var result = await _repository.AddAsync(request.Entity);
 
         if (!result.IsError)
-            await _mediator.Publish((IntegrationEvent)new EntityIntegrationEvent(request.Entity, "Created"), cancellationToken);
+            await _mediator.Publish(new EntityIntegrationEvent(request.Entity, "Created"), cancellationToken);
 
         return request.Entity;
     }

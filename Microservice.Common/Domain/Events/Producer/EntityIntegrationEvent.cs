@@ -1,9 +1,9 @@
 ﻿using Newtonsoft.Json;
 
-namespace Microservice.Common.Domain.Events;
+namespace Microservice.Common.Domain.Events.Producer;
 public record EntityIntegrationEvent : IntegrationEvent
 {
-    public EntityIntegrationEvent(object entity, string eventType) 
+    public EntityIntegrationEvent(object entity, string eventType)
         : base(CreateEventName(entity, eventType), SerializeEntity(entity))
     {
     }

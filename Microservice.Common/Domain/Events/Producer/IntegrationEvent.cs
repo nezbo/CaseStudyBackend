@@ -2,7 +2,7 @@
 using Microservice.Common.Domain.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace Microservice.Common.Domain.Events;
+namespace Microservice.Common.Domain.Events.Producer;
 public record IntegrationEvent : INotification, IGetIdentity
 {
     public IntegrationEvent(string name, string body, string version = "v1")

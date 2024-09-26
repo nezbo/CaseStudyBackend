@@ -1,5 +1,5 @@
 ﻿namespace Microservice.Common.Infrastructure.Events;
-public class RabbitMqSettings
+public class RabbitMQSettings
 {
     public string HostName { get; set; } = "localhost";
 

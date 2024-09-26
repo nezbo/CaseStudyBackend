@@ -1,6 +1,6 @@
 ﻿using CloudNative.CloudEvents;
 using CloudNative.CloudEvents.NewtonsoftJson;
-using Microservice.Common.Domain.Events;
+using Microservice.Common.Domain.Events.Producer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenTelemetry;
@@ -13,12 +13,12 @@ using System.Text;
 namespace Microservice.Common.Infrastructure.Events;
 public class RabbitMQEventPublisher : IIntegrationEventPublisher
 {
-    private readonly IOptions<RabbitMqSettings> _settings;
+    private readonly IOptions<RabbitMQSettings> _settings;
     private readonly IConnection _connection;
     private readonly ILogger<RabbitMQEventPublisher> _logger;
 
     public RabbitMQEventPublisher(
-        IOptions<RabbitMqSettings> settings,
+        IOptions<RabbitMQSettings> settings,
         RabbitMQConnection connection,
         ILogger<RabbitMQEventPublisher> logger)
     {
@@ -29,7 +29,7 @@ public class RabbitMQEventPublisher : IIntegrationEventPublisher
 
     public Task PublishAsync(IntegrationEvent evt)
     {
-        using (Activity? activity = RabbitMqDiagnostics.ActivitySource.StartActivity("RabbitMq Publish", ActivityKind.Producer, parentId: evt.TraceId))
+        using (Activity? activity = RabbitMQDiagnostics.ActivitySource.StartActivity("RabbitMq Publish", ActivityKind.Producer, parentId: evt.TraceId))
         {
             var channel = _connection.CreateModel();
             var props = channel.CreateBasicProperties();
@@ -60,8 +60,8 @@ public class RabbitMQEventPublisher : IIntegrationEventPublisher
                 Data = evt.Body,
             };
 
-            if (evt.TraceId != null)
-                evtWrapper.SetAttributeFromString("traceparent", evt.TraceId);
+            if (activity?.Id != null)
+                evtWrapper.SetAttributeFromString("traceparent", activity.Id);
 
             this._logger.LogInformation("Publishing event {EventId} {EventVersion} with traceId {TraceId}", evtWrapper.Id, evt.Version, evt.TraceId);
 
@@ -86,7 +86,7 @@ public class RabbitMQEventPublisher : IIntegrationEventPublisher
 
     private void AddActivityToHeader(Activity activity, IBasicProperties props)
     {
-        RabbitMqDiagnostics.Propagator.Inject(new PropagationContext(activity.Context, Baggage.Current), props, InjectContextIntoHeader);
+        RabbitMQDiagnostics.Propagator.Inject(new PropagationContext(activity.Context, Baggage.Current), props, InjectContextIntoHeader);
         activity?.SetTag("messaging.system", "rabbitmq");
         activity?.SetTag("messaging.destination_kind", "queue");
         activity?.SetTag("messaging.rabbitmq.queue", "sample");
