@@ -1,6 +1,7 @@
 ﻿using CloudNative.CloudEvents;
-using CloudNative.CloudEvents.NewtonsoftJson;
+using CloudNative.CloudEvents.SystemTextJson;
 using Microservice.Common.Domain.Events.Producer;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenTelemetry;
@@ -9,20 +10,24 @@ using RabbitMQ.Client;
 using System.Diagnostics;
 using System.Net.Mime;
 using System.Text;
+using System.Text.Json;
 
 namespace Microservice.Common.Infrastructure.Events;
 public class RabbitMQEventPublisher : IIntegrationEventPublisher
 {
     private readonly IOptions<RabbitMQSettings> _settings;
+    private readonly JsonSerializerOptions _jsonOptions;
     private readonly IConnection _connection;
     private readonly ILogger<RabbitMQEventPublisher> _logger;
 
     public RabbitMQEventPublisher(
         IOptions<RabbitMQSettings> settings,
         RabbitMQConnection connection,
+        JsonSerializerOptions jsonOptions,
         ILogger<RabbitMQEventPublisher> logger)
     {
         _settings = settings;
+        _jsonOptions = jsonOptions;
         _connection = connection.Connection;
         _logger = logger;
     }
@@ -65,13 +70,11 @@ public class RabbitMQEventPublisher : IIntegrationEventPublisher
 
             this._logger.LogInformation("Publishing event {EventId} {EventVersion} with traceId {TraceId}", evtWrapper.Id, evt.Version, evt.TraceId);
 
-            var evtFormatter = new JsonEventFormatter();
+            var evtFormatter = new JsonEventFormatter(_jsonOptions, new());
 
-            var json = evtFormatter.ConvertToJObject(evtWrapper).ToString();
+            var body = evtFormatter.EncodeStructuredModeMessage(evtWrapper, out var contentType);
+            _logger.LogInformation($"Event contentType = {contentType}");
 
-            _logger.LogInformation(json);
-
-            var body = Encoding.UTF8.GetBytes(json);
             this._logger.LogInformation($"Publishing '{queueName}' to '{_settings.Value.ExchangeName}'");
 
             channel.BasicPublish(

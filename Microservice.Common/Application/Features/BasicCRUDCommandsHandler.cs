@@ -1,9 +1,8 @@
 ﻿using ErrorOr;
 using MediatR;
+using Microservice.Common.Application.Features.Events;
 using Microservice.Common.Application.Repository;
-using Microservice.Common.Domain.Events.Producer;
 using Microservice.Common.Domain.Models;
-using static Grpc.Core.Metadata;
 
 namespace Microservice.Common.Application.Features;
 
@@ -26,7 +25,7 @@ public abstract class BasicCRUDCommandsHandler<TEntity>
         var result = await _repository.AddAsync(request.Entity);
 
         if (!result.IsError)
-            await _mediator.Publish(new EntityIntegrationEvent(request.Entity, "Created"), cancellationToken);
+            await SendIntegrationEvent("Created", request.Entity, cancellationToken);
 
         return request.Entity;
     }
@@ -51,7 +50,7 @@ public abstract class BasicCRUDCommandsHandler<TEntity>
         var result = await _repository.UpdateAsync(request.Entity);
 
         if (!result.IsError)
-            await _mediator.Publish(new EntityIntegrationEvent(request.Entity, "Updated"), cancellationToken);
+            await SendIntegrationEvent("Updated", request.Entity, cancellationToken);
 
         return result;
     }
@@ -66,8 +65,13 @@ public abstract class BasicCRUDCommandsHandler<TEntity>
         var result = await _repository.DeleteAsync(request.Id);
 
         if (!result.IsError)
-            await _mediator.Publish(new EntityIntegrationEvent(match, "Deleted"), cancellationToken);
+            await SendIntegrationEvent("Deleted", match.Value, cancellationToken);
 
         return Result.Deleted;
+    }
+
+    private async Task SendIntegrationEvent(string eventName, TEntity entity, CancellationToken cancellationToken)
+    {
+        await _mediator.Publish(new PublishEntityIntegrationEventCommand(eventName, "v1", entity), cancellationToken);
     }
 }

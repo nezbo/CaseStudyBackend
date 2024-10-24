@@ -4,8 +4,10 @@ using Microservice.Common.Domain.Events.Producer;
 using Microservice.Common.Infrastructure.EntityFrameworkCore;
 using Microservice.Common.Infrastructure.EntityFrameworkCore.Middleware;
 using Microservice.Common.Infrastructure.Events;
+using Microservice.Common.Infrastructure.Events.Workers;
 using Microservice.Common.Infrastructure.Repository;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +16,7 @@ using Microsoft.Extensions.Options;
 using MoreLinq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text.Json;
 
 namespace Microservice.Common;
 public static class DependencyInjection
@@ -30,6 +33,8 @@ public static class DependencyInjection
 
     public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration, Assembly applicationAssembly)
     {
+        services.AddTransient<JsonSerializerOptions>(s => s.GetRequiredService<IOptions<JsonOptions>>().Value.SerializerOptions);
+
         services.AddHttpContextAccessor();
         services.AddMediatR(c => c.RegisterServicesFromAssemblies(
             applicationAssembly, 
@@ -100,6 +105,7 @@ public static class DependencyInjection
             services.GetRequiredService<IMediator>(),
             services.GetRequiredService<RabbitMQEventSubscriber>(),
             services.GetRequiredService<IOptions<RabbitMQSettings>>(),
+            services.GetRequiredService<JsonSerializerOptions>(),
             services.GetRequiredService<ILogger<ReceiveIntegrationEventWorker<TBody>>>());
     }
 

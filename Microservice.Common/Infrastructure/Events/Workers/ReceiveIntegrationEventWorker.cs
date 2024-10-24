@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -7,8 +6,9 @@ using OpenTelemetry;
 using RabbitMQ.Client;
 using System.Diagnostics;
 using System.Text;
+using System.Text.Json;
 
-namespace Microservice.Common.Infrastructure.Events;
+namespace Microservice.Common.Infrastructure.Events.Workers;
 public class ReceiveIntegrationEventWorker<TEvent>
     : IHostedService
 {
@@ -21,6 +21,7 @@ public class ReceiveIntegrationEventWorker<TEvent>
     private readonly IMediator _mediator;
     private readonly RabbitMQEventSubscriber _subscriber;
     private readonly IOptions<RabbitMQSettings> _settings;
+    private readonly JsonSerializerOptions _jsonOptions;
     private readonly ILogger<ReceiveIntegrationEventWorker<TEvent>> _logger;
 
     private readonly string _eventKey;
@@ -30,11 +31,13 @@ public class ReceiveIntegrationEventWorker<TEvent>
         IMediator mediator,
         RabbitMQEventSubscriber subscriber,
         IOptions<RabbitMQSettings> settings,
+        JsonSerializerOptions jsonOptions,
         ILogger<ReceiveIntegrationEventWorker<TEvent>> logger)
     {
         _mediator = mediator;
         _subscriber = subscriber;
         _settings = settings;
+        _jsonOptions = jsonOptions;
         _logger = logger;
 
         _eventKey = eventKey;
@@ -67,7 +70,7 @@ public class ReceiveIntegrationEventWorker<TEvent>
         {
             try
             {
-                var evtDataResponse = await ea.ParseEventFromAsync<TEvent>();
+                var evtDataResponse = await ea.ParseEventFromAsync<TEvent>(_jsonOptions);
 
                 var parentContext = RabbitMQDiagnostics.Propagator.Extract(default, ea.BasicProperties, ExtractTraceContextFromBasicProperties);
                 Baggage.Current = parentContext.Baggage;
@@ -84,8 +87,9 @@ public class ReceiveIntegrationEventWorker<TEvent>
                     eventConsumer.Channel.BasicAck(ea.DeliveryTag, false);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                _logger.LogError(e, e.Message);
                 eventConsumer.Channel.BasicReject(ea.DeliveryTag, true);
             }
         };

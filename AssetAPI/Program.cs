@@ -1,11 +1,7 @@
-using AssetAPI.Application.Repository;
 using AssetAPI.Infrastructure.Persistence;
-using AssetAPI.Infrastructure.Persistence.Repository;
 using Microservice.Common;
 using Microservice.Common.Application.Extensions;
 using Microservice.Common.Application.OpenTelemetry.Extensions;
-using Microservice.Common.Application.Repository;
-using Microservice.Common.Infrastructure.Repository;
 using System.Reflection;
 
 namespace AssetAPI
@@ -26,8 +22,7 @@ namespace AssetAPI
             builder.Services.AddInfrastructure<ApiDbContext>(builder.Configuration, Assembly.GetExecutingAssembly());
 
             builder.Services.AddProblemDetails();
-            builder.Services.AddControllers()
-                .AddNewtonsoftJson();
+            builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddDateOnlyTimeOnlyStringConverters();

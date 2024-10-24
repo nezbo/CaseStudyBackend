@@ -25,8 +25,7 @@ public class Program
         builder.Services.AddInfrastructure<InvoiceDbContext>(builder.Configuration,Assembly.GetExecutingAssembly());
 
         builder.Services.AddProblemDetails();
-        builder.Services.AddControllers()
-            .AddNewtonsoftJson();
+        builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         builder.Services.AddDateOnlyTimeOnlyStringConverters();

@@ -4,11 +4,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Microservice.Common.Infrastructure.Events;
+namespace Microservice.Common.Infrastructure.Events.Workers;
 public class PublishIntegrationEventsWorker(
     IServiceScopeFactory serviceScopeFactory,
     IIntegrationEventPublisher integrationEventPublisher,
-    ILogger<PublishIntegrationEventsWorker> logger) 
+    ILogger<PublishIntegrationEventsWorker> logger)
     : IHostedService
 {
     private Task? _doWorkTask = null;
@@ -44,13 +44,13 @@ public class PublishIntegrationEventsWorker(
 
         _timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
 
-        while(await _timer.WaitForNextTickAsync(_cts.Token))
+        while (await _timer.WaitForNextTickAsync(_cts.Token))
         {
             try
             {
                 await PublishIntegrationEventsFromDbAsync();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 _logger.LogError(e, "Exception occurred while publishing integration events.");
             }
