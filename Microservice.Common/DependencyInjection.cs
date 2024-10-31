@@ -102,7 +102,7 @@ public static class DependencyInjection
     {
         return new ReceiveIntegrationEventWorker<TBody>(
             eventKey,
-            services.GetRequiredService<IMediator>(),
+            services.GetRequiredService<IServiceScopeFactory>(),
             services.GetRequiredService<RabbitMQEventSubscriber>(),
             services.GetRequiredService<IOptions<RabbitMQSettings>>(),
             services.GetRequiredService<JsonSerializerOptions>(),

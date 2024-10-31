@@ -14,11 +14,8 @@ public class InvoiceDbContext(DbContextOptions<InvoiceDbContext> options, IHttpC
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<Invoice>().OwnsMany<Service>("_services", s =>
-        {
-            s.WithOwner().HasForeignKey(s => s.InvoiceId);
-            s.Property<Guid>(nameof(Service.Id));
-            s.HasKey(nameof(Service.Id));
-        });
+        modelBuilder.Entity<Invoice>()
+            .HasMany<Service>("_services")
+            .WithOne(s => s.Invoice);
     }
 }

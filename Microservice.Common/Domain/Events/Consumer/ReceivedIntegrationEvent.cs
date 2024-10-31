@@ -3,7 +3,7 @@
 namespace Microservice.Common.Domain.Events.Consumer;
 public record ReceivedIntegrationEvent<TBody> : INotification
 {
-    public ReceivedIntegrationEvent(string NameVersion, TBody? body)
+    public ReceivedIntegrationEvent(string NameVersion, TBody body)
     {
         var split = NameVersion.Split('.');
         Name = split[0];
@@ -13,5 +13,5 @@ public record ReceivedIntegrationEvent<TBody> : INotification
 
     public string Name { get; set; }
     public string Version { get; set; }
-    public TBody? Body { get; set; }
+    public TBody Body { get; set; }
 }

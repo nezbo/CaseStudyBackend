@@ -19,6 +19,6 @@ public static class RabbitMQExtensions
             null);
         var data = JsonSerializer.Deserialize<TBody>(evtWrapper.Data!.ToString()!, serializerOptions);
 
-        return new ReceivedIntegrationEvent<TBody>(rabbitMqEvent.RoutingKey, data);
+        return new ReceivedIntegrationEvent<TBody>(rabbitMqEvent.RoutingKey, data!);
     }
 }

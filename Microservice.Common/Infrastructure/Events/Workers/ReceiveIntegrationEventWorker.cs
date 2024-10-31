@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -18,7 +19,7 @@ public class ReceiveIntegrationEventWorker<TEvent>
     private PeriodicTimer? _timer = null!;
     private readonly CancellationTokenSource _cts = new();
 
-    private readonly IMediator _mediator;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly RabbitMQEventSubscriber _subscriber;
     private readonly IOptions<RabbitMQSettings> _settings;
     private readonly JsonSerializerOptions _jsonOptions;
@@ -28,19 +29,19 @@ public class ReceiveIntegrationEventWorker<TEvent>
 
     public ReceiveIntegrationEventWorker(
         string eventKey,
-        IMediator mediator,
+        IServiceScopeFactory serviceScopeFactory,
         RabbitMQEventSubscriber subscriber,
         IOptions<RabbitMQSettings> settings,
         JsonSerializerOptions jsonOptions,
         ILogger<ReceiveIntegrationEventWorker<TEvent>> logger)
     {
-        _mediator = mediator;
         _subscriber = subscriber;
         _settings = settings;
         _jsonOptions = jsonOptions;
         _logger = logger;
 
         _eventKey = eventKey;
+        _serviceScopeFactory = serviceScopeFactory;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -75,15 +76,21 @@ public class ReceiveIntegrationEventWorker<TEvent>
                 var parentContext = RabbitMQDiagnostics.Propagator.Extract(default, ea.BasicProperties, ExtractTraceContextFromBasicProperties);
                 Baggage.Current = parentContext.Baggage;
 
-                using (var processingActivity = RabbitMQDiagnostics.ActivitySource.StartActivity("RabbitMq Publish", ActivityKind.Consumer, parentContext.ActivityContext))
+                using (var processingActivity = RabbitMQDiagnostics.ActivitySource.StartActivity("RabbitMq Receive", ActivityKind.Consumer, parentContext.ActivityContext))
                 {
                     if (processingActivity != null)
                     {
                         AddActivityTags(processingActivity);
+                        processingActivity.AddTag("messaging.eventId", ea.BasicProperties.MessageId);
+                        processingActivity.AddTag("messaging.eventType", evtDataResponse.Name);
+                        processingActivity.AddTag("messaging.eventVersion", evtDataResponse.Version);
                     }
 
-                    await _mediator.Publish(evtDataResponse, _cts.Token);
-
+                    using (var scope = _serviceScopeFactory.CreateScope())
+                    {
+                        var mediator = scope.ServiceProvider.GetService<IMediator>()!;
+                        await mediator.Publish(evtDataResponse, _cts.Token);
+                    }
                     eventConsumer.Channel.BasicAck(ea.DeliveryTag, false);
                 }
             }

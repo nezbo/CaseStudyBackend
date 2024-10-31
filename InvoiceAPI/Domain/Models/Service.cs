@@ -4,9 +4,10 @@ using Microservice.Common.Domain.Models;
 
 namespace InvoiceAPI.Domain.Models;
 
-public class Service : Entity
+public class Service : AggregateRoot
 {
     public Guid InvoiceId { get; private set; }
+    public Invoice? Invoice { get; private set; }
     public Guid AssetId { get; private set; }
 
     public string Name { get; set; } = string.Empty;
