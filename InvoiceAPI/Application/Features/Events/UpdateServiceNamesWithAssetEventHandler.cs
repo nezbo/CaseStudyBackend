@@ -5,13 +5,11 @@ using MediatR;
 using Microservice.Common.Application.Features;
 using Microservice.Common.Application.Features.Events;
 using Microservice.Common.Domain.Events.Consumer;
-using Microservice.Common.Extensions;
-using MoreLinq;
 
 namespace InvoiceAPI.Application.Features.Events;
 
 [IntegrationEventHandler(EventName = "AssetUpdated")]
-public class AssetUpdatedEventHandler(IMediator mediator, IServiceRepository serviceRepository) 
+public class UpdateServiceNamesWithAssetEventHandler(IMediator mediator, IServiceRepository serviceRepository) 
     : IntegrationEventHandler<AssetDto>
 {
     private readonly IMediator _mediator = mediator;

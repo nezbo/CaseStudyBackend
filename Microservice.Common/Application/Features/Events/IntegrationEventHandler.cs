@@ -1,5 +1,7 @@
 ﻿using MediatR;
 using Microservice.Common.Domain.Events.Consumer;
+using Microservice.Common.Infrastructure.Events;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace Microservice.Common.Application.Features.Events;
@@ -15,7 +17,10 @@ public abstract class IntegrationEventHandler<TBody> : INotificationHandler<Rece
             && intEvent.Name == attr.EventName
             && intEvent.Version == attr.EventVersion)
         {
-            await HandleIntegrationEvent(intEvent, cancellationToken);
+            using (var processingActivity = Activity.Current?.Source.StartActivity(GetType().Name, ActivityKind.Consumer))
+            {
+                await HandleIntegrationEvent(intEvent, cancellationToken);
+            }
         }
     }
 }

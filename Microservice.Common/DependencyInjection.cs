@@ -1,5 +1,4 @@
-﻿using MediatR;
-using Microservice.Common.Application.Features.Events;
+﻿using Microservice.Common.Application.Features.Events;
 using Microservice.Common.Domain.Events.Producer;
 using Microservice.Common.Infrastructure.EntityFrameworkCore;
 using Microservice.Common.Infrastructure.EntityFrameworkCore.Middleware;

@@ -4,7 +4,7 @@ namespace InvoiceAPI.Presentation.Models;
 
 public record ServiceDto : IIdentity
 {
-    public required Guid Id { get; set; }
+    public Guid Id { get; set; }
     public required Guid AssetId { get; set; }
 
     public required string Name { get; set; } = string.Empty;
