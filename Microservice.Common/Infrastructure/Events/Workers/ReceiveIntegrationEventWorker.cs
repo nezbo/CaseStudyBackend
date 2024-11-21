@@ -65,9 +65,9 @@ public class ReceiveIntegrationEventWorker<TEvent>
 
     private async Task ExecuteAsync()
     {
-        var eventConsumer = _subscriber.CreateEventConsumer(_settings.Value.ExchangeName, _eventKey);
+        var eventConsumer = await _subscriber.CreateEventConsumerAsync(_settings.Value.ExchangeName, _eventKey);
 
-        eventConsumer.Consumer.Received += async (model, ea) =>
+        eventConsumer.Consumer.ReceivedAsync += async (model, ea) =>
         {
             try
             {
@@ -91,19 +91,19 @@ public class ReceiveIntegrationEventWorker<TEvent>
                         var mediator = scope.ServiceProvider.GetService<IMediator>()!;
                         await mediator.Publish(evtDataResponse, _cts.Token);
                     }
-                    eventConsumer.Channel.BasicAck(ea.DeliveryTag, false);
+                    await eventConsumer.Channel.BasicAckAsync(ea.DeliveryTag, false);
                 }
             }
             catch (Exception e)
             {
                 _logger.LogError(e, e.Message);
-                eventConsumer.Channel.BasicReject(ea.DeliveryTag, true);
+                await eventConsumer.Channel.BasicRejectAsync(ea.DeliveryTag, true);
             }
         };
 
         while (!_cts.IsCancellationRequested)
         {
-            eventConsumer.Channel.BasicConsume(
+            await eventConsumer.Channel.BasicConsumeAsync(
                 _settings.Value.ExchangeName,
                 false,
                 eventConsumer.Consumer);
@@ -112,11 +112,11 @@ public class ReceiveIntegrationEventWorker<TEvent>
         }
     }
 
-    private IEnumerable<string> ExtractTraceContextFromBasicProperties(IBasicProperties props, string key)
+    private IEnumerable<string> ExtractTraceContextFromBasicProperties(IReadOnlyBasicProperties props, string key)
     {
         try
         {
-            if (props.Headers.TryGetValue(key, out var value))
+            if (props.Headers!.TryGetValue(key, out var value))
             {
                 var bytes = value as byte[];
                 return [Encoding.UTF8.GetString(bytes!)];

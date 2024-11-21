@@ -2,9 +2,9 @@
 using RabbitMQ.Client.Events;
 
 namespace Microservice.Common.Infrastructure.Events;
-public class RetrieveEventConsumerResponse(IModel channel)
+public class RetrieveEventConsumerResponse(IChannel channel)
 {
-    public EventingBasicConsumer Consumer { get; private set; } = new EventingBasicConsumer(channel);
+    public AsyncEventingBasicConsumer Consumer { get; private set; } = new AsyncEventingBasicConsumer(channel);
 
-    public IModel Channel { get; private set; } = channel;
+    public IChannel Channel { get; private set; } = channel;
 }

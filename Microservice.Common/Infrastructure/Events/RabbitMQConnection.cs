@@ -18,7 +18,7 @@ public class RabbitMQConnection
                     HostName = hostName
                 };
 
-                Connection = factory.CreateConnection();
+                Connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
                 break;
             }
             catch (BrokerUnreachableException e)

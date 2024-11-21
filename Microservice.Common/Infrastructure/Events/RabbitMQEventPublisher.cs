@@ -32,19 +32,18 @@ public class RabbitMQEventPublisher : IIntegrationEventPublisher
         _logger = logger;
     }
 
-    public Task PublishAsync(IntegrationEvent evt)
+    public async Task PublishAsync(IntegrationEvent evt)
     {
         using (Activity? activity = RabbitMQDiagnostics.ActivitySource.StartActivity("RabbitMq Publish", ActivityKind.Producer, parentId: evt.TraceId))
         {
-            var channel = _connection.CreateModel();
-            var props = channel.CreateBasicProperties();
-            props.Persistent = true;
+            var channel = await _connection.CreateChannelAsync();
+            var props = new BasicProperties { Persistent = true };
 
-            channel.ExchangeDeclare(exchange: _settings.Value.ExchangeName, ExchangeType.Topic, durable: true, autoDelete: false);
+            await channel.ExchangeDeclareAsync(exchange: _settings.Value.ExchangeName, ExchangeType.Topic, durable: true, autoDelete: false);
 
             var queueName = $"{evt.Name}.{evt.Version}";
 
-            channel.QueueDeclare(queueName, exclusive: false, durable: true, autoDelete: false);
+            await channel.QueueDeclareAsync(queueName, exclusive: false, durable: true, autoDelete: false);
 
             if (activity != null)
             {
@@ -77,14 +76,13 @@ public class RabbitMQEventPublisher : IIntegrationEventPublisher
 
             this._logger.LogInformation($"Publishing '{queueName}' to '{_settings.Value.ExchangeName}'");
 
-            channel.BasicPublish(
+            await channel.BasicPublishAsync(
                 exchange: _settings.Value.ExchangeName,
                 routingKey: queueName,
+                mandatory: true,
                 basicProperties: props,
                 body: body);
         }
-
-        return Task.CompletedTask;
     }
 
     private void AddActivityToHeader(Activity activity, IBasicProperties props)
@@ -99,7 +97,7 @@ public class RabbitMQEventPublisher : IIntegrationEventPublisher
     {
         try
         {
-            props.Headers ??= new Dictionary<string, object>();
+            props.Headers ??= new Dictionary<string, object?>();
             props.Headers[key] = value;
         }
         catch (Exception ex)

@@ -7,21 +7,21 @@ public class RabbitMQEventSubscriber(RabbitMQConnection connection, IOptions<Rab
     private readonly RabbitMQConnection _connection = connection;
     private readonly IOptions<RabbitMQSettings> _settings = settings;
 
-    public RetrieveEventConsumerResponse CreateEventConsumer(string queueName, string eventName, int deliveryLimit = 3)
+    public async Task<RetrieveEventConsumerResponse> CreateEventConsumerAsync(string queueName, string eventName, int deliveryLimit = 3)
     {
         string dqlExchangeName = $"{_settings.Value.ExchangeName}-dlq";
-        var channel = this._connection.Connection.CreateModel();
-        channel.ExchangeDeclare(exchange: _settings.Value.ExchangeName, ExchangeType.Topic, durable: true);
-        channel.ExchangeDeclare(exchange: dqlExchangeName, ExchangeType.Direct, durable: true);
+        var channel = await this._connection.Connection.CreateChannelAsync();
+        await channel.ExchangeDeclareAsync(exchange: _settings.Value.ExchangeName, ExchangeType.Topic, durable: true);
+        await channel.ExchangeDeclareAsync(exchange: dqlExchangeName, ExchangeType.Direct, durable: true);
 
-        var dlq = channel.QueueDeclare($"{queueName}-dlq", durable: true, autoDelete: false, exclusive: false,
-            arguments: new Dictionary<string, object>
+        var dlq = await channel.QueueDeclareAsync($"{queueName}-dlq", durable: true, autoDelete: false, exclusive: false,
+            arguments: new Dictionary<string, object?>
             {
                 { "x-queue-type", "quorum" }
             });
 
-        var queue = channel.QueueDeclare(queueName, durable: true, autoDelete: false, exclusive: false,
-            arguments: new Dictionary<string, object>
+        var queue = await channel.QueueDeclareAsync(queueName, durable: true, autoDelete: false, exclusive: false,
+            arguments: new Dictionary<string, object?>
             {
                 {"x-queue-type", "quorum"},
                 {"x-delivery-limit", deliveryLimit},
@@ -29,8 +29,8 @@ public class RabbitMQEventSubscriber(RabbitMQConnection connection, IOptions<Rab
                 {"x-dead-letter-routing-key", dlq.QueueName}
             });
 
-        channel.QueueBind(dlq, exchange: dqlExchangeName, routingKey: dlq.QueueName);
-        channel.QueueBind(queue, exchange: _settings.Value.ExchangeName, routingKey: eventName);
+        await channel.QueueBindAsync(dlq, exchange: dqlExchangeName, routingKey: dlq.QueueName);
+        await channel.QueueBindAsync(queue, exchange: _settings.Value.ExchangeName, routingKey: eventName);
 
         return new RetrieveEventConsumerResponse(channel);
     }
