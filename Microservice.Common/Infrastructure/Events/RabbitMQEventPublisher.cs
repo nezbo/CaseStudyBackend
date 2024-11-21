@@ -38,6 +38,8 @@ public class RabbitMQEventPublisher : IIntegrationEventPublisher
         {
             var channel = await _connection.CreateChannelAsync();
             var props = new BasicProperties { Persistent = true };
+            if (evt.BodyId != null)
+                AddToHeader(props, RabbitMQDiagnostics.HEADER_DATA_ID, evt.BodyId.ToString()!);
 
             await channel.ExchangeDeclareAsync(exchange: _settings.Value.ExchangeName, ExchangeType.Topic, durable: true, autoDelete: false);
 
@@ -52,6 +54,10 @@ public class RabbitMQEventPublisher : IIntegrationEventPublisher
                 activity.AddTag("messaging.eventType", evt.Name);
                 activity.AddTag("messaging.eventVersion", evt.Version);
                 activity.AddTag("messaging.eventSource", evt.Source);
+                if(evt.BodyId != null)
+                {
+                    activity.AddTag("messaging.bodyId", evt.BodyId);
+                }
             }
 
             var evtWrapper = new CloudEvent
@@ -62,10 +68,7 @@ public class RabbitMQEventPublisher : IIntegrationEventPublisher
                 DataContentType = MediaTypeNames.Application.Json,
                 Id = evt.Id.ToString(),
                 Data = evt.Body,
-            };
-
-            if (activity?.Id != null)
-                evtWrapper.SetAttributeFromString("traceparent", activity.Id);
+            };            
 
             this._logger.LogInformation("Publishing event {EventId} {EventVersion} with traceId {TraceId}", evtWrapper.Id, evt.Version, evt.TraceId);
 
@@ -87,13 +90,13 @@ public class RabbitMQEventPublisher : IIntegrationEventPublisher
 
     private void AddActivityToHeader(Activity activity, IBasicProperties props)
     {
-        RabbitMQDiagnostics.Propagator.Inject(new PropagationContext(activity.Context, Baggage.Current), props, InjectContextIntoHeader);
+        RabbitMQDiagnostics.Propagator.Inject(new PropagationContext(activity.Context, Baggage.Current), props, AddToHeader);
         activity?.SetTag("messaging.system", "rabbitmq");
         activity?.SetTag("messaging.destination_kind", "queue");
         activity?.SetTag("messaging.rabbitmq.queue", "sample");
     }
 
-    private void InjectContextIntoHeader(IBasicProperties props, string key, string value)
+    private void AddToHeader(IBasicProperties props, string key, string value)
     {
         try
         {

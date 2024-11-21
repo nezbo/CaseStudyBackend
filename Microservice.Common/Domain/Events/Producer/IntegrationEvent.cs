@@ -1,6 +1,5 @@
 ﻿using MediatR;
 using Microservice.Common.Domain.Models;
-using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 
@@ -20,19 +19,23 @@ public record IntegrationEvent : INotification, IGetIdentity
     public string Name { get; init; }
     public string Version { get; init; }
     public string Body { get; init; }
+    public Guid? BodyId { get; init; }
     public Uri? Source { get; set; }
     public string? TraceId { get; set; }
 
     public static IntegrationEvent FromObject(
-        object entity,
+        Entity entity,
         string eventType,
         string version = "v1",
         JsonSerializerOptions? jsonOptions = null)
     {
         return new IntegrationEvent(
             CreateEventName(entity, eventType),
-            System.Text.Json.JsonSerializer.Serialize(entity, jsonOptions ?? JsonSerializerOptions.Default),
-            version);
+            JsonSerializer.Serialize((object)entity, jsonOptions ?? JsonSerializerOptions.Default),
+            version)
+        { 
+            BodyId = entity.Id 
+        };
     }
 
     private static string CreateEventName(object entity, string eventType)

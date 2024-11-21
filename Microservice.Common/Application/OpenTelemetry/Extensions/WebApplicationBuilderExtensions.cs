@@ -23,7 +23,6 @@ public static class WebApplicationBuilderExtensions
                     .AddSource(RabbitMQDiagnostics.ActivitySourceName)
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
-                    .AddEntityFrameworkCoreInstrumentation()
                     .AddOtlpExporter(options =>
                     {
                         options.Endpoint = new Uri(otlpEndpointUrl);

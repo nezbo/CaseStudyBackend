@@ -69,34 +69,38 @@ public class ReceiveIntegrationEventWorker<TEvent>
 
         eventConsumer.Consumer.ReceivedAsync += async (model, ea) =>
         {
+            var parentContext = RabbitMQDiagnostics.Propagator.Extract(default, ea.BasicProperties, GetStringFromHeader);
+            Baggage.Current = parentContext.Baggage;
+
+            using var processingActivity = RabbitMQDiagnostics.ActivitySource.StartActivity("RabbitMq Receive", ActivityKind.Consumer, parentContext.ActivityContext);
+
             try
             {
                 var evtDataResponse = await ea.ParseEventFromAsync<TEvent>(_jsonOptions);
 
-                var parentContext = RabbitMQDiagnostics.Propagator.Extract(default, ea.BasicProperties, ExtractTraceContextFromBasicProperties);
-                Baggage.Current = parentContext.Baggage;
-
-                using (var processingActivity = RabbitMQDiagnostics.ActivitySource.StartActivity("RabbitMq Receive", ActivityKind.Consumer, parentContext.ActivityContext))
+                if (processingActivity != null)
                 {
-                    if (processingActivity != null)
-                    {
-                        AddActivityTags(processingActivity);
-                        processingActivity.AddTag("messaging.eventId", ea.BasicProperties.MessageId);
-                        processingActivity.AddTag("messaging.eventType", evtDataResponse.Name);
-                        processingActivity.AddTag("messaging.eventVersion", evtDataResponse.Version);
-                    }
-
-                    using (var scope = _serviceScopeFactory.CreateScope())
-                    {
-                        var mediator = scope.ServiceProvider.GetService<IMediator>()!;
-                        await mediator.Publish(evtDataResponse, _cts.Token);
-                    }
-                    await eventConsumer.Channel.BasicAckAsync(ea.DeliveryTag, false);
+                    AddActivityTags(processingActivity);
+                    processingActivity.AddTag("messaging.eventId", ea.BasicProperties.MessageId);
+                    processingActivity.AddTag("messaging.eventType", evtDataResponse.Name);
+                    processingActivity.AddTag("messaging.eventVersion", evtDataResponse.Version);
+                    var dataid = GetStringFromHeader(ea.BasicProperties, RabbitMQDiagnostics.HEADER_DATA_ID);
+                    if (dataid?.Count() > 0)
+                        processingActivity.AddTag("messaging.bodyId", dataid.First());
                 }
+
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var mediator = scope.ServiceProvider.GetService<IMediator>()!;
+                    await mediator.Publish(evtDataResponse, _cts.Token);
+                }
+                await eventConsumer.Channel.BasicAckAsync(ea.DeliveryTag, false);
             }
             catch (Exception e)
             {
                 _logger.LogError(e, e.Message);
+                processingActivity?.AddException(e);
+
                 await eventConsumer.Channel.BasicRejectAsync(ea.DeliveryTag, true);
             }
         };
@@ -112,7 +116,7 @@ public class ReceiveIntegrationEventWorker<TEvent>
         }
     }
 
-    private IEnumerable<string> ExtractTraceContextFromBasicProperties(IReadOnlyBasicProperties props, string key)
+    private IEnumerable<string> GetStringFromHeader(IReadOnlyBasicProperties props, string key)
     {
         try
         {

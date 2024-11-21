@@ -15,7 +15,7 @@ namespace InvoiceAPI.Persistence.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
 
             modelBuilder.Entity("InvoiceAPI.Domain.Models.Invoice", b =>
                 {
@@ -80,6 +80,9 @@ namespace InvoiceAPI.Persistence.Migrations
 
                     b.Property<string>("Body")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("BodyId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")

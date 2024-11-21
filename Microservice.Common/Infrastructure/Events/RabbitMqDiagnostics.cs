@@ -9,4 +9,6 @@ public static class RabbitMQDiagnostics
 
     public static readonly ActivitySource ActivitySource = new(ActivitySourceName);
     public static readonly TextMapPropagator Propagator = Propagators.DefaultTextMapPropagator;
+
+    public static readonly string HEADER_DATA_ID = "dataid";
 }
