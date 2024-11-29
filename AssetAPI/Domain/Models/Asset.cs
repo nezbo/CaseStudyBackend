@@ -1,9 +1,12 @@
 ﻿using Microservice.Common.Domain.Models;
 using ErrorOr;
 using AssetAPI.Domain.Errors;
+using Microservice.SourceGeneration.Attributes;
+using Microservice.SourceGeneration;
 
 namespace AssetAPI.Domain.Models;
 
+[GenerateCRUDRequestHandlers]
 public class Asset : AggregateRoot
 {
     public Asset() : base(null) { }
