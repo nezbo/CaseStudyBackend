@@ -1,31 +1,40 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Microservice.SourceGeneration.Utilities;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Text;
-using Microservice.SourceGeneration.Attributes;
 
 namespace Microservice.SourceGeneration.Features
 {
     [Generator]
-    public class CRUDRequestHandlersGenerator : CustomAttributeSourceGenerator<GenerateCRUDRequestHandlersAttribute>
+    public class CRUDRequestHandlersGenerator
+        : CustomAttributeSourceGenerator
     {
-        protected override void Generate(SourceProductionContext context, INamedTypeSymbol domainModel)
-        {
-            var handlerClassName = $"{domainModel.Name}CRUDCommandsHandler";
-            var sourceBuilder = new StringBuilder($@"
-                using {domainModel.ContainingNamespace.ToDisplayString()}
-                using MediatR;
-                using Microservice.Common.Application.Features;
-                using Microservice.Common.Application.Repository;
+        protected override string TriggerAttributeName => "GenerateCRUDRequestHandlers";
 
-                namespace Microservice.Generated;
-                
-                public class {handlerClassName}(IMediator mediator, IGenericRepository<Asset> repository) 
-                    : BasicCRUDCommandsHandler<Asset>(mediator, repository)
-                {{
-                }}
+        protected override void Generate(SourceProductionContext context, ClassDeclarationSyntax domainModel)
+        {
+            var modelName = domainModel.GetClassName();
+            var handlerClassName = $"{modelName}CRUDCommandsHandler";
+            var sourceBuilder = new StringBuilder($@"
+using {domainModel.GetNamespace()};
+using MediatR;
+using Microservice.Common.Application.Features;
+using Microservice.Common.Application.Repository;
+
+namespace Microservice.Generated {{
+    public class {handlerClassName} : BasicCRUDCommandsHandler<{modelName}>
+    {{
+        public {handlerClassName}(IMediator mediator, IGenericRepository<{modelName}> repository) : base(mediator, repository)
+        {{
+        }}
+    }}
+}}
             ");
 
-            context.AddSource($"Microservice.Generated.{handlerClassName}.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
+            string sourceStr = sourceBuilder.ToString().Trim();
+
+            context.AddSource($"Microservice.Generated.{handlerClassName}.g.cs", SourceText.From(sourceStr, Encoding.UTF8));
         }
     }
 }

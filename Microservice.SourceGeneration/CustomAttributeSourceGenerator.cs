@@ -1,46 +1,37 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
 using System.Linq;
 
 namespace Microservice.SourceGeneration
 {
-    public abstract class CustomAttributeSourceGenerator<TAttribute>
+    public abstract class CustomAttributeSourceGenerator
         : IIncrementalGenerator
-        where TAttribute : Attribute
     {
-        protected abstract void Generate(SourceProductionContext context, INamedTypeSymbol classSymbol);
+        protected abstract string TriggerAttributeName { get; }
+        protected abstract void Generate(SourceProductionContext context, ClassDeclarationSyntax classDecl);
+
+        private static readonly DiagnosticDescriptor _logDescriptor = new(
+            id: "SG001",
+            title: "Source Generator Log",
+            messageFormat: "{0}",
+            category: "SourceGenerator",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            // Create a provider for class declarations with the custom attribute
             var classDeclarations = context.SyntaxProvider
                 .CreateSyntaxProvider(
-                    predicate: (s, _) => s is ClassDeclarationSyntax classDecl && classDecl.AttributeLists.Count > 0,
-                    transform: (ctx, _) => (ClassDeclarationSyntax)ctx.Node)
+                    predicate: static (syntaxNode, _) => syntaxNode is ClassDeclarationSyntax,
+                    transform: static (context, _) => (ClassDeclarationSyntax)context.Node)
                 .Where(classDecl => classDecl.AttributeLists
-                    .SelectMany(al => al.Attributes)
-                        .Any(attr => attr.Name.ToString() == nameof(TAttribute)));
+                        .SelectMany(al => al.Attributes)
+                            .Any(attr => attr.Name.ToString().Equals(TriggerAttributeName)));
 
-            // Combine the class declarations with the compilation
-            var compilationAndClasses = context.CompilationProvider.Combine(classDeclarations.Collect());
-
-            // Register the source output
-            context.RegisterSourceOutput(compilationAndClasses, (spc, source) =>
-            {
-                var (compilation, classes) = source;
-
-                foreach (var classDecl in classes)
-                {
-                    var model = compilation.GetSemanticModel(classDecl.SyntaxTree);
-                    var symbol = model.GetDeclaredSymbol(classDecl);
-
-                    if (symbol.GetAttributes().Any(attr => attr.AttributeClass?.Name == nameof(TAttribute)))
-                    {
-                        Generate(spc, symbol);
-                    }
-                }
-            });
+            context.RegisterSourceOutput(classDeclarations, Generate);
         }
+
+        protected void Log(SourceProductionContext context, string message) 
+            => context.ReportDiagnostic(Diagnostic.Create(_logDescriptor, Location.None, message));
     }
 }

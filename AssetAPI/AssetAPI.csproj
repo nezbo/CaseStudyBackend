@@ -28,10 +28,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microservice.SourceGeneration\Microservice.SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-      <ProjectReference Include="..\Microservice.SourceGeneration.Attributes\Microservice.SourceGeneration.Attributes.csproj">
-          <Private>true</Private>
-      </ProjectReference>
+    <ProjectReference 
+        Include="..\Microservice.SourceGeneration\Microservice.SourceGeneration.csproj" 
+        OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\Microservice.Common\Microservice.Common.csproj" />
   </ItemGroup>
 

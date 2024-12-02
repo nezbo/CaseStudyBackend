@@ -1,8 +1,7 @@
 ﻿using Microservice.Common.Domain.Models;
 using ErrorOr;
 using AssetAPI.Domain.Errors;
-using Microservice.SourceGeneration.Attributes;
-using Microservice.SourceGeneration;
+using Microservice.Common.SourceGeneration.Attributes;
 
 namespace AssetAPI.Domain.Models;
 
