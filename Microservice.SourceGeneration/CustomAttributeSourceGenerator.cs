@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Microservice.SourceGeneration.Utilities;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
 
@@ -28,7 +29,10 @@ namespace Microservice.SourceGeneration
                         .SelectMany(al => al.Attributes)
                             .Any(attr => attr.Name.ToString().Equals(TriggerAttributeName)));
 
-            context.RegisterSourceOutput(classDeclarations, Generate);
+            context.RegisterSourceOutput(classDeclarations, (context, classDecl) =>
+            {
+                this.Generate(context, classDecl);
+            });
         }
 
         protected void Log(SourceProductionContext context, string message) 

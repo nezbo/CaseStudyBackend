@@ -44,7 +44,7 @@ public class AssetRepositoryTests : GenericRepositoryTests<AssetRepository, Asse
         response.Value.Should().HaveCount(expectedCount);
     }
 
-    private DateOnly GetDate(string dateString)
+    private static DateOnly GetDate(string dateString)
     {
         return DateOnly.ParseExact(dateString, "yyyy-MM-dd");
     }
