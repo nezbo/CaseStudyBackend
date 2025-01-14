@@ -1,13 +1,9 @@
-﻿using AssetAPI.Application.Repository;
-using AssetAPI.Domain.Models;
+﻿using AssetAPI.Domain.Models;
 using ErrorOr;
-using Microservice.Common.Infrastructure.EntityFrameworkCore;
-using Microservice.Common.Infrastructure.Repository;
 
 namespace AssetAPI.Infrastructure.Persistence.Repository;
 
-public partial class AssetRepository(IBaseDbContext dbContext) 
-    : GenericRepository<Asset>(dbContext), IAssetRepository
+public partial class AssetRepository
 {
     public new Task<ErrorOr<IEnumerable<Asset>>> GetByIdsAsync(params Guid[] ids)
     {

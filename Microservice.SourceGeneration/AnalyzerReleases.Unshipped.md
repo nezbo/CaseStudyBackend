@@ -5,4 +5,4 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-SG001 | SourceGenerator | Warning | CustomAttributeSourceGenerator
+SG001 | SourceGenerator | Error | CustomAttributeSourceGenerator

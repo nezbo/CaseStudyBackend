@@ -12,17 +12,20 @@ namespace Microservice.SourceGeneration.Features
     {
         protected override string TriggerAttributeName => "GenerateCRUDRequestHandlers";
 
-        protected override void Generate(SourceProductionContext context, ClassDeclarationSyntax domainModel)
+        protected override void Generate(Compilation compilation, SourceProductionContext context, ClassDeclarationSyntax domainModel)
         {
             var modelName = domainModel.GetClassName();
             var handlerClassName = $"{modelName}CRUDCommandsHandler";
+            string @namespace = this.GetAttributeConstructorArgumentString(compilation, context, domainModel, "@namespace", 0, "Microservice.Generated");
+            //this.Log(context, @namespace);
+
             var sourceBuilder = new StringBuilder($@"
 using {domainModel.GetNamespace()};
 using MediatR;
 using Microservice.Common.Application.Features;
 using Microservice.Common.Application.Repository;
 
-namespace Microservice.Generated {{
+namespace {@namespace} {{
     public class {handlerClassName} : BasicCRUDCommandsHandler<{modelName}>
     {{
         public {handlerClassName}(IMediator mediator, IGenericRepository<{modelName}> repository) : base(mediator, repository)

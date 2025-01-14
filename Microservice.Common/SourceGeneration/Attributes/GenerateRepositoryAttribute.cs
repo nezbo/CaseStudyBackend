@@ -1,6 +1,8 @@
 ﻿namespace Microservice.Common.SourceGeneration.Attributes;
 
 [AttributeUsage(AttributeTargets.Class)]
-public class GenerateRepositoryAttribute : Attribute
+public class GenerateRepositoryAttribute(string @namespace)
+        : Attribute
 {
+    public string Namespace { get; set; } = @namespace;
 }

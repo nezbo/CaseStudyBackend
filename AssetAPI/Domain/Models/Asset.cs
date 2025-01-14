@@ -5,7 +5,8 @@ using Microservice.Common.SourceGeneration.Attributes;
 
 namespace AssetAPI.Domain.Models;
 
-[GenerateCRUDRequestHandlers]
+[GenerateCRUDRequestHandlers(@namespace: "AssetAPI.Application.Features.Assets")]
+[GenerateRepository(@namespace: "AssetAPI.Infrastructure.Persistence.Repository")]
 public class Asset : AggregateRoot
 {
     public Asset() : base(null) { }

@@ -11,17 +11,18 @@ namespace Microservice.SourceGeneration.Repositories
     {
         protected override string TriggerAttributeName => "GenerateRepository";
 
-        protected override void Generate(SourceProductionContext context, ClassDeclarationSyntax domainModel)
+        protected override void Generate(Compilation compilation, SourceProductionContext context, ClassDeclarationSyntax domainModel)
         {
             string modelName = domainModel.GetClassName();
             string className = $"{modelName}Repository";
+            string @namespace = this.GetAttributeConstructorArgumentString(compilation, context, domainModel, "@namespace", 0, "Microservice.Generated");
 
             var sourceBuilder = new StringBuilder($@"
 using {domainModel.GetNamespace()};
 using Microservice.Common.Infrastructure.EntityFrameworkCore;
 using Microservice.Common.Infrastructure.Repository;
 
-namespace Microservice.Generated {{
+namespace {@namespace} {{
     public partial class {className}(IBaseDbContext dbContext) 
     : GenericRepository<{modelName}>(dbContext)
     {{
