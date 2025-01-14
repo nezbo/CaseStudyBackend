@@ -23,19 +23,10 @@ namespace Microservice.SourceGeneration
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            /*var classDeclarations = context.SyntaxProvider
-                .CreateSyntaxProvider(
-                    predicate: static (syntaxNode, _) => syntaxNode is ClassDeclarationSyntax,
-                    transform: static (context, _) => (ClassDeclarationSyntax)context.Node)
-                .Where(classDecl => classDecl.AttributeLists
-                        .SelectMany(al => al.Attributes)
-                            .Any(attr => attr.Name.ToString().Equals(TriggerAttributeName)));*/
-
             context.RegisterSourceOutput(context.CompilationProvider, (context, compilation) =>
             {
                 var classes = FilterClassesWithAttribute(compilation.SyntaxTrees, this.TriggerAttributeName);
 
-                //this.Log(context, classes.Count().ToString());
                 foreach (var classDecl in classes)
                 {
                     this.Generate(compilation, context, classDecl);
@@ -68,16 +59,11 @@ namespace Microservice.SourceGeneration
             // Get the semantic model for the syntax tree
             var semanticModel = compilation.GetSemanticModel(classDeclaration.SyntaxTree);
 
-            //this.Log(context, "Semantic Model: " + (semanticModel?.ToString() ?? "Null"));
-
             // Get the symbol for the class declaration
             var classSymbol = semanticModel?.GetDeclaredSymbol(classDeclaration) as INamedTypeSymbol;
 
-            //this.Log(context, "Class Symbol: " + (classSymbol?.ToString() ?? "Null"));
-
             if (classSymbol == null)
             {
-                //this.Log(context, "Class symbol is null. ");
                 return null;
             }
 
@@ -85,11 +71,8 @@ namespace Microservice.SourceGeneration
             var attributeData = classSymbol.GetAttributes()
                                            .FirstOrDefault(attr => attr.AttributeClass?.Name == this.TriggerAttributeName + "Attribute");
 
-            //this.Log(context, "Attribute Data: " + (attributeData?.ToString() ?? "Null"));
-
             if (attributeData == null)
             {
-                //this.Log(context, "Attribute data is null.");
                 return null;
             }
 
@@ -98,7 +81,6 @@ namespace Microservice.SourceGeneration
 
             if (namedArgument.Key == constructorArgName)
             {
-                //this.Log(context, "Named Argument Found: " + namedArgument.Value.ToString());
                 return namedArgument.Value;
             }
 
@@ -106,11 +88,9 @@ namespace Microservice.SourceGeneration
             if (constructorArgIndex < attributeData.ConstructorArguments.Length)
             {
                 var constructorArgument = attributeData.ConstructorArguments[constructorArgIndex];
-                //this.Log(context, "Constructor Argument Found: " + constructorArgument.ToString());
                 return constructorArgument;
             }
 
-            //this.Log(context, "Constructor argument index out of range.");
             return null;
         }
     }

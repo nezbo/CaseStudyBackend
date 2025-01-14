@@ -17,7 +17,6 @@ namespace Microservice.SourceGeneration.Features
             var modelName = domainModel.GetClassName();
             var handlerClassName = $"{modelName}CRUDCommandsHandler";
             string @namespace = this.GetAttributeConstructorArgumentString(compilation, context, domainModel, "@namespace", 0, "Microservice.Generated");
-            //this.Log(context, @namespace);
 
             var sourceBuilder = new StringBuilder($@"
 using {domainModel.GetNamespace()};
