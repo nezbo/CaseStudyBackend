@@ -1,9 +1,10 @@
-﻿using AssetAPI.Domain.Models;
+﻿using AssetAPI.Application.Repository;
+using AssetAPI.Domain.Models;
 using ErrorOr;
 
 namespace AssetAPI.Infrastructure.Persistence.Repository;
 
-public partial class AssetRepository
+public partial class AssetRepository : IAssetRepository
 {
     public new Task<ErrorOr<IEnumerable<Asset>>> GetByIdsAsync(params Guid[] ids)
     {

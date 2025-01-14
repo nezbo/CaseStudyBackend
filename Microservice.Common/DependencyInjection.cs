@@ -20,24 +20,24 @@ using System.Text.Json;
 namespace Microservice.Common;
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure<TContext>(this IServiceCollection services, IConfiguration configuration, Assembly applicationAssembly)
+    public static IServiceCollection AddInfrastructure<TContext>(this IServiceCollection services, IConfiguration configuration, params Assembly[] applicationAssemblies)
         where TContext : DbContext, IBaseDbContext
     {
-        services.AddServices(configuration, applicationAssembly)
-            .AddPersistence<TContext>(applicationAssembly)
-            .AddBackgroundServices(applicationAssembly);
+        services.AddServices(configuration, applicationAssemblies)
+            .AddPersistence<TContext>(applicationAssemblies)
+            .AddBackgroundServices(applicationAssemblies);
 
         return services;
     }
 
-    public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration, Assembly applicationAssembly)
+    public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration, params Assembly[] applicationAssemblies)
     {
         services.AddTransient<JsonSerializerOptions>(s => s.GetRequiredService<IOptions<JsonOptions>>().Value.SerializerOptions);
 
         services.AddHttpContextAccessor();
         services.AddMediatR(c => c.RegisterServicesFromAssemblies(
-            applicationAssembly, 
-            typeof(DependencyInjection).Assembly));
+            [..applicationAssemblies,
+            typeof(DependencyInjection).Assembly]));
 
         // Events
         var hostName = configuration["Messaging:HostName"];
@@ -49,7 +49,7 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddPersistence<TContext>(this IServiceCollection services, Assembly applicationAssembly)
+    public static IServiceCollection AddPersistence<TContext>(this IServiceCollection services, params Assembly[] applicationAssemblies)
         where TContext : DbContext, IBaseDbContext
     {
         // DbContext
@@ -58,19 +58,21 @@ public static class DependencyInjection
         services.AddScoped<IBaseDbContext>(x => x.GetRequiredService<TContext>());
 
         // Repositories
-        applicationAssembly.DefinedTypes
+        var repositories = applicationAssemblies.SelectMany(a => a.DefinedTypes
             .Where(t => t.BaseType != null && t.BaseType!.IsGenericType)
-            .Where(t => t.BaseType!.GetGenericTypeDefinition() == typeof(GenericRepository<>))
+            .Where(t => t.BaseType!.GetGenericTypeDefinition() == typeof(GenericRepository<>)));
+
+        repositories
             .ForEach(t => t.GetInterfaces().ForEach(i => services.AddScoped(i, t)));
 
         return services;
     }
 
-    public static IServiceCollection AddBackgroundServices(this IServiceCollection services, Assembly applicationAssembly)
+    public static IServiceCollection AddBackgroundServices(this IServiceCollection services, params Assembly[] applicationAssemblies)
     {
         // Events
         services.AddHostedService<PublishIntegrationEventsWorker>();
-        IEnumerable<(string,Type)> subscribedIntegrationEvents = ScanForIntegrationEventHandlers(applicationAssembly);
+        IEnumerable<(string, Type)> subscribedIntegrationEvents = ScanForIntegrationEventHandlers(applicationAssemblies);
         subscribedIntegrationEvents.ForEach(t => AddIntegrationEventWorker(services, t.Item1, t.Item2));
 
         return services;
@@ -88,7 +90,7 @@ public static class DependencyInjection
                 .MakeGenericType(bodyType));
 
         var factoryReturnType = typeof(ReceiveIntegrationEventWorker<>).MakeGenericType(bodyType);
-        Expression<Func<IServiceProvider,object?>> factory = (IServiceProvider c) => typeof(DependencyInjection)
+        Expression<Func<IServiceProvider, object?>> factory = (IServiceProvider c) => typeof(DependencyInjection)
             .GetMethod(nameof(GetWorker))!
             .MakeGenericMethod(bodyType)
             .Invoke(null, new object?[] { c, eventKey });
@@ -108,11 +110,11 @@ public static class DependencyInjection
             services.GetRequiredService<ILogger<ReceiveIntegrationEventWorker<TBody>>>());
     }
 
-    private static IEnumerable<(string,Type)> ScanForIntegrationEventHandlers(Assembly applicationAssembly)
+    private static IEnumerable<(string, Type)> ScanForIntegrationEventHandlers(params Assembly[] applicationAssemblies)
     {
-        return applicationAssembly.DefinedTypes
+        return applicationAssemblies.SelectMany(a => a.DefinedTypes
             .Where(t => t.GetCustomAttribute<IntegrationEventHandlerAttribute>() != null)
-            .Select(t => (GetEventKeyFromAttribute(t), GetEventBodyTypeFromHandler(t)));
+            .Select(t => (GetEventKeyFromAttribute(t), GetEventBodyTypeFromHandler(t))));
     }
 
     private static Type GetEventBodyTypeFromHandler(TypeInfo type)
