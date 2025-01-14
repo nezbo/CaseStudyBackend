@@ -7,6 +7,7 @@ namespace AssetAPI.Domain.Models;
 
 [GenerateCRUDRequestHandlers(@namespace: "AssetAPI.Application.Features.Assets")]
 [GenerateRepository(@namespace: "AssetAPI.Infrastructure.Persistence.Repository")]
+[GenerateDto(@namespace: "AssetAPI.Presentation.Models")]
 public class Asset : AggregateRoot
 {
     public Asset() : base(null) { }
@@ -29,7 +30,9 @@ public class Asset : AggregateRoot
         };
     }
 
+    [GenerateDtoRequired]
     public string Name { get; set; } = string.Empty;
+    [GenerateDtoRequired]
     public decimal Price { get; private set; }
     public DateOnly? ValidFrom { get; set; }
     public DateOnly? ValidTo { get; set; }

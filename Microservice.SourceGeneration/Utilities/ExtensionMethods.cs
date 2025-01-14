@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Linq;
 
 namespace Microservice.SourceGeneration.Utilities;
 internal static class ExtensionMethods
@@ -24,4 +25,7 @@ internal static class ExtensionMethods
 
         return string.Empty;
     }
+
+    public static bool HasAttribute(this SyntaxList<AttributeListSyntax> attributeLists, string attributeName)
+        => attributeLists.SelectMany(al => al.Attributes).Any(attr => attr.Name.ToString() == attributeName);
 }

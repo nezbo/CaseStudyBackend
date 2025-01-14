@@ -41,9 +41,7 @@ namespace Microservice.SourceGeneration
 
             // Filter classes that have the specified attribute
             var classesWithAttribute = classDeclarations.Where(classDecl =>
-                classDecl.AttributeLists
-                    .SelectMany(al => al.Attributes)
-                    .Any(attr => attr.Name.ToString() == attributeName));
+                classDecl.AttributeLists.HasAttribute(attributeName));
 
             return classesWithAttribute;
         }
