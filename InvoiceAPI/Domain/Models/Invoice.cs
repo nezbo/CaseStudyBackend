@@ -1,9 +1,13 @@
 ﻿using ErrorOr;
 using InvoiceAPI.Domain.Errors;
 using Microservice.Common.Domain.Models;
+using Microservice.Common.SourceGeneration.Attributes;
 
 namespace InvoiceAPI.Domain.Models;
 
+[GenerateCRUDRequestHandlers(@namespace: "InvoiceAPI.Application.Features.Services")]
+[GenerateRepository(@namespace: "InvoiceAPI.Infrastructure.Persistence.Repository")]
+[GenerateDto(@namespace: "InvoiceAPI.Presentation.Models")]
 public class Invoice : AggregateRoot
 {
     public Invoice() : base(null) { }
@@ -35,6 +39,7 @@ public class Invoice : AggregateRoot
 
     private readonly List<Service> _services = [];
 
+    [GenerateDtoProperty(name: "Services")]
     public IEnumerable<Service> GetServices() => _services.AsReadOnly();
 
     public ErrorOr<Success> AddService(Service service)

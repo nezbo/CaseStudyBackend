@@ -63,6 +63,22 @@ namespace {@namespace} {{
 
                 yield return $"public {propertyRequired}{propertyType} {propertyName} {{ get; set; }}";
             }
+
+            var getterMethods = domainModel.Members
+                .AsEnumerable()
+                .OfType<MethodDeclarationSyntax>()
+                .Where(p => p.Modifiers.Any(SyntaxKind.PublicKeyword))
+                .Where(p => p.AttributeLists.HasAttribute("GenerateDtoProperty"))
+                .ToList();
+
+            foreach (var method in getterMethods)
+            {
+                var propertyName = method.Identifier.Text; // TODO: Replace with Name argument
+                var propertyType = method.ReturnType.ToString();
+                var propertyRequired = method.AttributeLists.HasAttribute("GenerateDtoRequired") ? "required " : "";
+
+                yield return $"public {propertyRequired}{propertyType} {propertyName} {{ get; set; }}";
+            }
         }
     }
 }
