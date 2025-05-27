@@ -17,27 +17,40 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
 
-namespace Microservice.Common;
+namespace Microservice.Common.DI;
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure<TContext>(this IServiceCollection services, IConfiguration configuration, Assembly applicationAssembly)
-        where TContext : DbContext, IBaseDbContext
+    public static IServiceCollection AddServiceRegistrationsFromAssemblies(this IServiceCollection services, IConfiguration configuration, params IEnumerable<Assembly> assemblies)
     {
-        services.AddServices(configuration, applicationAssembly)
-            .AddPersistence<TContext>(applicationAssembly)
-            .AddBackgroundServices(applicationAssembly);
+        assemblies.SelectMany(a => a.DefinedTypes)
+            .Where(t => t.IsClass && !t.IsAbstract && typeof(IServiceRegistration).IsAssignableFrom(t))
+            .ForEach(type =>
+            {
+                var registration = (IServiceRegistration)Activator.CreateInstance(type)!;
+                registration.RegisterServices(services, configuration);
+            });
 
         return services;
     }
 
-    public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration, Assembly applicationAssembly)
+    public static IServiceCollection AddInfrastructure<TContext>(this IServiceCollection services, IConfiguration configuration, Assembly applicationAssembly)
+        where TContext : DbContext, IBaseDbContext
     {
-        services.AddTransient<JsonSerializerOptions>(s => s.GetRequiredService<IOptions<JsonOptions>>().Value.SerializerOptions);
+        services.AddInfrastructureServices(configuration, applicationAssembly)
+            .AddPersistence<TContext>(applicationAssembly)
+            .AddEventProcessingServices(applicationAssembly);
+
+        return services;
+    }
+
+    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration, params IEnumerable<Assembly> applicationAssemblies)
+    {
+        services.AddTransient(s => s.GetRequiredService<IOptions<JsonOptions>>().Value.SerializerOptions);
 
         services.AddHttpContextAccessor();
         services.AddMediatR(c => c.RegisterServicesFromAssemblies(
-            applicationAssembly, 
-            typeof(DependencyInjection).Assembly));
+            [..applicationAssemblies, 
+            typeof(DependencyInjection).Assembly]));
 
         // Events
         var hostName = configuration["Messaging:HostName"];
@@ -47,6 +60,12 @@ public static class DependencyInjection
         services.AddSingleton<RabbitMQEventSubscriber>();
 
         return services;
+    }
+
+    public static IServiceCollection AddPersistence<TContext>(this IServiceCollection services)
+    where TContext : DbContext, IBaseDbContext
+    {
+        return services.AddPersistence<TContext>(typeof(TContext).Assembly);
     }
 
     public static IServiceCollection AddPersistence<TContext>(this IServiceCollection services, Assembly applicationAssembly)
@@ -66,7 +85,7 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddBackgroundServices(this IServiceCollection services, Assembly applicationAssembly)
+    public static IServiceCollection AddEventProcessingServices(this IServiceCollection services, Assembly applicationAssembly)
     {
         // Events
         services.AddHostedService<PublishIntegrationEventsWorker>();
@@ -88,7 +107,7 @@ public static class DependencyInjection
                 .MakeGenericType(bodyType));
 
         var factoryReturnType = typeof(ReceiveIntegrationEventWorker<>).MakeGenericType(bodyType);
-        Expression<Func<IServiceProvider,object?>> factory = (IServiceProvider c) => typeof(DependencyInjection)
+        Expression<Func<IServiceProvider,object?>> factory = (c) => typeof(DependencyInjection)
             .GetMethod(nameof(GetWorker))!
             .MakeGenericMethod(bodyType)
             .Invoke(null, new object?[] { c, eventKey });

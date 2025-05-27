@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace AssetAPI.Infrastructure.Persistence;
 
-public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<ApiDbContext>
+public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AssetDbContext>
 {
-    public ApiDbContext CreateDbContext(string[] args)
+    public AssetDbContext CreateDbContext(string[] args)
     {
-        return new ApiDbContext(BaseDbContext<ApiDbContext>.DefaultOptions, new MockHttpContextAccessor());
+        return new AssetDbContext(BaseDbContext<AssetDbContext>.DefaultOptions, new MockHttpContextAccessor());
     }
 
     public class MockHttpContextAccessor : IHttpContextAccessor

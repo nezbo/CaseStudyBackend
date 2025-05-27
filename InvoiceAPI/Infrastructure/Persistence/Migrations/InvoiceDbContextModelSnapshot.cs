@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace InvoiceAPI.Persistence.Migrations
+namespace InvoiceAPI.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(InvoiceDbContext))]
     partial class InvoiceDbContextModelSnapshot : ModelSnapshot
@@ -15,7 +15,9 @@ namespace InvoiceAPI.Persistence.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
+            modelBuilder
+                .HasDefaultSchema("InvoiceDbContext")
+                .HasAnnotation("ProductVersion", "9.0.0");
 
             modelBuilder.Entity("InvoiceAPI.Domain.Models.Invoice", b =>
                 {
@@ -37,7 +39,7 @@ namespace InvoiceAPI.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Invoices");
+                    b.ToTable("InvoiceDbContext_Invoices", "InvoiceDbContext");
                 });
 
             modelBuilder.Entity("Microservice.Common.Domain.Events.Producer.IntegrationEvent", b =>
@@ -69,7 +71,7 @@ namespace InvoiceAPI.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Outbox");
+                    b.ToTable("InvoiceDbContext_Outbox", "InvoiceDbContext");
                 });
 
             modelBuilder.Entity("InvoiceAPI.Domain.Models.Invoice", b =>
@@ -103,7 +105,7 @@ namespace InvoiceAPI.Persistence.Migrations
 
                             b1.HasIndex("InvoiceId");
 
-                            b1.ToTable("Services");
+                            b1.ToTable("InvoiceDbContext_Services", "InvoiceDbContext");
 
                             b1.WithOwner("Invoice")
                                 .HasForeignKey("InvoiceId");

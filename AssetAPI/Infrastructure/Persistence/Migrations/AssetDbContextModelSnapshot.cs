@@ -7,15 +7,17 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace AssetAPI.Persistence.Migrations
+namespace AssetAPI.Infrastructure.Persistence.Migrations
 {
-    [DbContext(typeof(ApiDbContext))]
-    partial class ApiDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(AssetDbContext))]
+    partial class AssetDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
+            modelBuilder
+                .HasDefaultSchema("AssetDbContext")
+                .HasAnnotation("ProductVersion", "9.0.0");
 
             modelBuilder.Entity("AssetAPI.Domain.Models.Asset", b =>
                 {
@@ -38,7 +40,7 @@ namespace AssetAPI.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Assets");
+                    b.ToTable("AssetDbContext_Assets", "AssetDbContext");
                 });
 
             modelBuilder.Entity("Microservice.Common.Domain.Events.Producer.IntegrationEvent", b =>
@@ -70,7 +72,7 @@ namespace AssetAPI.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Outbox");
+                    b.ToTable("AssetDbContext_Outbox", "AssetDbContext");
                 });
 #pragma warning restore 612, 618
         }

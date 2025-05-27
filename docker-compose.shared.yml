@@ -1,25 +1,4 @@
-version: '3.4'
-
 services:
-  assetapi:
-    image: ${DOCKER_REGISTRY-}assetapi
-    restart: always
-    build:
-      context: .
-      dockerfile: AssetAPI/Dockerfile
-    environment:
-      OTLP_Endpoint: http://otel-collector:4317
-
-  invoiceapi:
-    image: ${DOCKER_REGISTRY-}invoiceapi
-    restart: always
-    build:
-      context: .
-      dockerfile: InvoiceAPI/Dockerfile
-    environment:
-      OTLP_Endpoint: http://otel-collector:4317
-      ASSET_API_URL: http://assetapi:80
-
   # Message Broker
   rabbitmq:
     image: rabbitmq:3.13-management

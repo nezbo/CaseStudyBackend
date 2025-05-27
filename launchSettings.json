@@ -5,7 +5,8 @@
       "commandVersion": "1.0",
       "serviceActions": {
         "assetapi": "StartDebugging",
-        "invoiceapi": "StartDebugging"
+        "invoiceapi": "StartDebugging",
+        "modularmonolith": "StartDebugging"
       }
     }
   }

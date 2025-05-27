@@ -1,9 +1,9 @@
 using InvoiceAPI.Application.External;
 using InvoiceAPI.Infrastructure.External;
 using InvoiceAPI.Infrastructure.Persistence;
-using Microservice.Common;
 using Microservice.Common.Application.Extensions;
 using Microservice.Common.Application.OpenTelemetry.Extensions;
+using Microservice.Common.DI;
 using System.Reflection;
 
 namespace InvoiceAPI;
@@ -22,7 +22,7 @@ public class Program
         // Add services to the container.
         builder.AddOpenTelemetry(serviceName, builder.Configuration.GetValue<string>("OTLP_Endpoint")!);
         builder.Services.AddHttpClient();
-        builder.Services.AddInfrastructure<InvoiceDbContext>(builder.Configuration,Assembly.GetExecutingAssembly());
+        builder.Services.AddInfrastructure<InvoiceDbContext>(builder.Configuration, Assembly.GetExecutingAssembly());
 
         builder.Services.AddProblemDetails();
         builder.Services.AddControllers();
@@ -30,7 +30,7 @@ public class Program
         builder.Services.AddSwaggerGen();
         builder.Services.AddDateOnlyTimeOnlyStringConverters();
 
-        builder.Services.AddTransient<IAssetService, AssetService>();
+        builder.Services.AddServiceRegistrationsFromAssemblies(builder.Configuration, Assembly.GetExecutingAssembly());
 
         var app = builder.Build();
 
@@ -47,11 +47,10 @@ public class Program
 
         app.UseHttpsRedirection();
         app.UseAuthorization();
-
-        app.AddInfrastructureMiddleware();
         app.MapControllers();
 
         app.ApplyDatabaseMigrations<InvoiceDbContext>();
+        app.AddInfrastructureMiddleware();
 
         app.Run();
     }

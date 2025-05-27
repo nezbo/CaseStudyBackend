@@ -16,6 +16,20 @@ public abstract class BaseDbContext<TContext>(DbContextOptions<TContext> options
 
     public DbSet<IntegrationEvent> Outbox { get; set; }
 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        var tablePrefix = this.GetType().Name;
+        modelBuilder.HasDefaultSchema(tablePrefix);
+
+        foreach (var entity in modelBuilder.Model.GetEntityTypes())
+        {
+            var currentTableName = entity.GetTableName();
+            entity.SetTableName($"{tablePrefix}_{currentTableName}");
+        }
+
+        base.OnModelCreating(modelBuilder);
+    }
+
     public static DbContextOptions<TContext> DefaultOptions 
     { 
         get 
@@ -33,7 +47,7 @@ public abstract class BaseDbContext<TContext>(DbContextOptions<TContext> options
             .AddJsonFile("appsettings.json")
             .Build();
         var connectionString = configuration.GetConnectionString("WebApiDatabase");
-        options.UseSqlite(connectionString);
+        options.UseSqlite(connectionString, o => o.MigrationsHistoryTable(typeof(TContext).Name));
     }
 
     public DbSet<T> GetSet<T>() where T : class, IGetIdentity

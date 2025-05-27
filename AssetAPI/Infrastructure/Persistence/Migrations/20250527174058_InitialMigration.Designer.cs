@@ -8,17 +8,19 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace AssetAPI.Persistence.Migrations
+namespace AssetAPI.Infrastructure.Persistence.Migrations
 {
-    [DbContext(typeof(ApiDbContext))]
-    [Migration("20240925133932_RichIntEvents")]
-    partial class RichIntEvents
+    [DbContext(typeof(AssetDbContext))]
+    [Migration("20250527174058_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
+            modelBuilder
+                .HasDefaultSchema("AssetDbContext")
+                .HasAnnotation("ProductVersion", "9.0.0");
 
             modelBuilder.Entity("AssetAPI.Domain.Models.Asset", b =>
                 {
@@ -41,10 +43,10 @@ namespace AssetAPI.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Assets");
+                    b.ToTable("AssetDbContext_Assets", "AssetDbContext");
                 });
 
-            modelBuilder.Entity("Microservice.Common.Domain.Events.IntegrationEvent", b =>
+            modelBuilder.Entity("Microservice.Common.Domain.Events.Producer.IntegrationEvent", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -52,6 +54,9 @@ namespace AssetAPI.Persistence.Migrations
 
                     b.Property<string>("Body")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("BodyId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
@@ -70,7 +75,7 @@ namespace AssetAPI.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Outbox");
+                    b.ToTable("AssetDbContext_Outbox", "AssetDbContext");
                 });
 #pragma warning restore 612, 618
         }

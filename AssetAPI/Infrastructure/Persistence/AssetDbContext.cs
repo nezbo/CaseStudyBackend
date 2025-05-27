@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AssetAPI.Infrastructure.Persistence;
 
-public class ApiDbContext(DbContextOptions<ApiDbContext> options, IHttpContextAccessor http) 
-    : BaseDbContext<ApiDbContext>(options, http)
+public class AssetDbContext(DbContextOptions<AssetDbContext> options, IHttpContextAccessor http) 
+    : BaseDbContext<AssetDbContext>(options, http)
 {
     public DbSet<Asset> Assets { get; set; }
 }
