@@ -1,7 +1,7 @@
 extensions:
   health_check:
   zpages:
-    endpoint: :5679
+    endpoint: :${PORT_OTEL_ZPAGES}
 
 receivers:
   otlp:
@@ -23,9 +23,9 @@ exporters:
     tls:
       insecure: true
   prometheus:
-    endpoint: "0.0.0.0:8889"
+    endpoint: "${PROMETHEUS_ENDPOINT}"
   loki:
-    endpoint: http://loki:3100/loki/api/v1/push
+    endpoint: "${LOKI_ENDPOINT}"
     tls:
       insecure: true
 

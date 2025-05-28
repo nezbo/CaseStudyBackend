@@ -1,0 +1,68 @@
+services:
+  api:
+    depends_on:
+      - otel-collector
+    image: ${DOCKER_REGISTRY-}api
+    restart: always
+    build:
+      context: ..
+      dockerfile: ModularMonolith/Dockerfile
+    environment:
+      OTLP_Endpoint: http://otel-collector:${PORT_OTEL_RECEIVER}
+
+  # Monitoring
+  jaeger:
+    image: jaegertracing/all-in-one:1.58.0
+    ports:
+      - "${PORT_JAEGER}:16686" # Jaeger Web UI
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    ports:
+      - "${PORT_PROMETHEUS}:9090"
+    volumes:
+      - ../prometheus.yml:/etc/prometheus/prometheus.yml
+    environment:
+      OTEL_PROMETHEUS_ENDPOINT: "otel-collector:${PORT_OTEL_PROMETHEUS_EXPORTER-8889}"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+
+  loki:
+    image: grafana/loki:2.7.1
+    ports:
+      - "${PORT_LOKI}:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  grafana:
+    image: grafana/grafana:10.4.4
+    volumes:
+      - ../grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      PROMETHEUS_ENDPOINT: http://prometheus:${PORT_PROMETHEUS-9090}
+      JAEGER_ENDPOINT: http://jaeger:${PORT_JAEGER_UI-16686}
+      LOKI_ENDPOINT: http://loki:${PORT_LOKI-3100}
+    ports:
+      - "${PORT_GRAFANA}:3000"
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.103.0
+    volumes:
+      - ../otel-collector/otel-collector-config.yml:/etc/otel/config.yaml
+      - ./log:/log/otel
+    command: --config /etc/otel/config.yaml
+    environment:
+      PORT_OTEL_ZPAGES: "${PORT_OTEL_ZPAGES-5679}"
+      JAEGER_ENDPOINT: "jaeger:${PORT_JAEGER_OLTP-4317}"
+      LOKI_ENDPOINT: "http://loki:${PORT_LOKI-3100}/loki/api/v1/push"
+      PROMETHEUS_ENDPOINT: "0.0.0.0:${PORT_OTEL_PROMETHEUS_EXPORTER-8880}"
+    ports:
+      - "${PORT_OTEL_PROMETHEUS_EXPORTER}:8889"     # Prometheus metrics exporter (endpoint)
+      - "${PORT_OTEL_HEALTH}:13133"   # Health check extension
+      - "${PORT_OTEL_ZPAGES}:5679"   # ZPages extension
+      - "${PORT_OTEL_RECEIVER}:4317"     # OTLP Receiver
+    depends_on:
+      - jaeger
+      - prometheus
+      - loki

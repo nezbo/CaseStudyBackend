@@ -38,7 +38,8 @@ public static class DependencyInjection
     {
         services.AddInfrastructureServices(configuration, applicationAssembly)
             .AddPersistence<TContext>(applicationAssembly)
-            .AddEventProcessingServices(applicationAssembly);
+            .AddEventProcessingServices(applicationAssembly)
+            .AddRabbitMQServices(configuration);
 
         return services;
     }
@@ -52,7 +53,11 @@ public static class DependencyInjection
             [..applicationAssemblies, 
             typeof(DependencyInjection).Assembly]));
 
-        // Events
+        return services;
+    }
+
+    public static IServiceCollection AddRabbitMQServices(this IServiceCollection services, IConfiguration configuration)
+    {
         var hostName = configuration["Messaging:HostName"];
         services.AddSingleton(new RabbitMQConnection(hostName!));
         services.Configure<RabbitMQSettings>(configuration.GetSection("Messaging"));

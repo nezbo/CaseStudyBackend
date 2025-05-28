@@ -14,13 +14,11 @@
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}</DockerServiceUrl>
   </PropertyGroup>
   <ItemGroup>
+    <None Include=".env" />
     <None Include="docker-compose.monolith.override.yml">
       <DependentUpon>docker-compose.monolith.yml</DependentUpon>
     </None>
     <None Include="docker-compose.monolith.yml" />
     <None Include=".dockerignore" />
-    <None Include="docker-compose.shared.yml">
-      <DependentUpon>docker-compose.monolith.yml</DependentUpon>
-    </None>
   </ItemGroup>
 </Project>
