@@ -3,6 +3,8 @@ using Microservice.Common.Domain.Events;
 using Microservice.Common.Domain.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microservice.Common.Infrastructure.EntityFrameworkCore.Middleware;
 public class EventualConsistencyMiddleware(RequestDelegate next)
@@ -11,9 +13,21 @@ public class EventualConsistencyMiddleware(RequestDelegate next)
 
     private readonly RequestDelegate _next = next;
 
-    public async Task InvokeAsync(HttpContext context, IPublisher publisher, DbContext dbContext)
+    public async Task InvokeAsync(HttpContext context, IPublisher publisher, IServiceProvider serviceProvider)
     {
-        var transaction = await dbContext.Database.BeginTransactionAsync();
+        // Find all registered DbContexts in the current request scope
+        var dbContexts = serviceProvider
+            .GetServices<DbContext>()
+            .Distinct()
+            .ToList();
+
+        // Begin a transaction for each DbContext
+        var transactions = new List<IDbContextTransaction>();
+        foreach (var dbContext in dbContexts)
+        {
+            var transaction = await dbContext.Database.BeginTransactionAsync();
+            transactions.Add(transaction);
+        }
 
         context.Response.OnCompleted(async () =>
         {
@@ -22,21 +36,38 @@ public class EventualConsistencyMiddleware(RequestDelegate next)
                 if (context.Items.TryGetValue(DomainEventsKey, out var value)
                     && value is Queue<IDomainEvent> domainEvents)
                 {
-                    while(domainEvents.TryDequeue(out var nextEvent))
+                    while (domainEvents.TryDequeue(out var nextEvent))
                     {
                         await publisher.Publish(nextEvent);
                     }
                 }
-                
-                await transaction.CommitAsync();
+
+                // Save changes for all DbContexts
+                foreach (var dbContext in dbContexts)
+                {
+                    if (dbContext.ChangeTracker.HasChanges())
+                    {
+                        await dbContext.SaveChangesAsync();
+                    }
+                }
+
+                // Commit all transactions
+                foreach (var transaction in transactions)
+                {
+                    await transaction.CommitAsync();
+                }
             }
-            catch(EventualConsistencyException)
+            catch (EventualConsistencyException)
             {
                 // TODO Handle this gently
             }
             finally
             {
-                await transaction.DisposeAsync();
+                // Dispose all transactions
+                foreach (var transaction in transactions)
+                {
+                    await transaction.DisposeAsync();
+                }
             }
         });
 

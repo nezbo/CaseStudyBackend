@@ -19,7 +19,7 @@ internal class PublishIntegrationEventHandler<TIntegrationEvent>(IBaseDbContext 
         if (_httpContextAccessor?.HttpContext != null)
             integrationEvent.Source = new Uri(_httpContextAccessor.HttpContext.Request.GetDisplayUrl());
 
-        await _dbContext.GetSet<IntegrationEvent>().AddAsync(integrationEvent);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.GetSet<IntegrationEvent>().AddAsync(integrationEvent, cancellationToken);
+        //await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

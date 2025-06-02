@@ -5,6 +5,7 @@ using Microservice.Common.Infrastructure.EntityFrameworkCore.Middleware;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Data.Common;
 
 namespace Microservice.Common.Infrastructure.EntityFrameworkCore;
 
@@ -40,14 +41,21 @@ public abstract class BaseDbContext<TContext>(DbContextOptions<TContext> options
         } 
     }
     
-    public static void ApplyDefaultOptions(DbContextOptionsBuilder options)
+    public static void ApplyDefaultOptions(DbContextOptionsBuilder options, DbConnection? connection = null)
     {
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json")
-            .Build();
-        var connectionString = configuration.GetConnectionString("WebApiDatabase");
-        options.UseSqlite(connectionString, o => o.MigrationsHistoryTable(typeof(TContext).Name));
+        if(connection is not null)
+        {
+            options.UseSqlite(connection, o => o.MigrationsHistoryTable(typeof(TContext).Name));
+        }
+        else
+        {
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .Build();
+            var connectionString = configuration.GetConnectionString("WebApiDatabase");
+            options.UseSqlite(connectionString, o => o.MigrationsHistoryTable(typeof(TContext).Name));
+        }
     }
 
     public DbSet<T> GetSet<T>() where T : class, IGetIdentity

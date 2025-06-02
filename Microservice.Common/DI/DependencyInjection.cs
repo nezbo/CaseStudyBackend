@@ -7,12 +7,14 @@ using Microservice.Common.Infrastructure.Events.Workers;
 using Microservice.Common.Infrastructure.Repository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MoreLinq;
+using System.Data.Common;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
@@ -37,7 +39,7 @@ public static class DependencyInjection
         where TContext : DbContext, IBaseDbContext
     {
         services.AddInfrastructureServices(configuration, applicationAssembly)
-            .AddPersistence<TContext>(applicationAssembly)
+            .AddPersistence<TContext>(configuration)
             .AddEventProcessingServices(applicationAssembly)
             .AddRabbitMQServices(configuration);
 
@@ -67,22 +69,19 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddPersistence<TContext>(this IServiceCollection services)
+    public static IServiceCollection AddPersistence<TContext>(this IServiceCollection services, IConfiguration configuration, DbConnection? connection = null)
     where TContext : DbContext, IBaseDbContext
     {
-        return services.AddPersistence<TContext>(typeof(TContext).Assembly);
-    }
-
-    public static IServiceCollection AddPersistence<TContext>(this IServiceCollection services, Assembly applicationAssembly)
-        where TContext : DbContext, IBaseDbContext
-    {
         // DbContext
-        services.AddDbContext<TContext>(BaseDbContext<TContext>.ApplyDefaultOptions);
+        services.AddDbContext<TContext>(options =>
+        {
+            BaseDbContext<TContext>.ApplyDefaultOptions(options, connection);
+        });
         services.AddScoped<DbContext>(x => x.GetRequiredService<TContext>());
         services.AddScoped<IBaseDbContext>(x => x.GetRequiredService<TContext>());
 
         // Repositories
-        applicationAssembly.DefinedTypes
+        typeof(TContext).Assembly.DefinedTypes
             .Where(t => t.BaseType != null && t.BaseType!.IsGenericType)
             .Where(t => t.BaseType!.GetGenericTypeDefinition() == typeof(GenericRepository<>))
             .ForEach(t => t.GetInterfaces().ForEach(i => services.AddScoped(i, t)));

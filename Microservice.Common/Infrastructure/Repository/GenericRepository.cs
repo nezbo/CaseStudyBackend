@@ -62,29 +62,21 @@ public class GenericRepository<T>(IBaseDbContext dbContext)
     public async Task<ErrorOr<Created>> AddAsync(T entity)
     {
         await DbSet.AddAsync(entity);
-        return (await Context.SaveChangesAsync()) > 0
-            ? Result.Created
-            : Error.Failure(
-                description: $"Failed to create {typeof(T).Name} with id = {entity?.Id}",
-                metadata: new Dictionary<string, object>() { { "id", entity?.Id ?? default } });
+        return Result.Created;
     }
 
-    public async Task<ErrorOr<Updated>> UpdateAsync(T entity)
+    public Task<ErrorOr<Updated>> UpdateAsync(T entity)
     {
         if (entity != null)
         {
             DbSet.Update(entity);
-            try
-            {
-                if (await Context.SaveChangesAsync() > 0)
-                    return Result.Updated;
-            }
-            catch(Exception) { }
+            return Task.FromResult<ErrorOr<Updated>>(Result.Updated);
         }
 
-        return Error.Failure(
-            description: $"Failed to update {typeof(T).Name} with id = {entity?.Id}",
-            metadata: new Dictionary<string, object>() { { "id", entity?.Id ?? default } });
+        return Task.FromResult<ErrorOr<Updated>>(
+            Error.Failure(
+                description: $"Failed to update {typeof(T).Name} with id = {entity?.Id}",
+                metadata: new Dictionary<string, object>() { { "id", entity?.Id ?? default } }));
     }
 
     public async Task<ErrorOr<Deleted>> DeleteAsync(Guid id)
@@ -93,8 +85,7 @@ public class GenericRepository<T>(IBaseDbContext dbContext)
         if (entity != null)
         {
             DbSet.Remove(entity);
-            if (await Context.SaveChangesAsync() > 0)
-                return Result.Deleted;
+            return Result.Deleted;
         }
 
         return Error.Failure(

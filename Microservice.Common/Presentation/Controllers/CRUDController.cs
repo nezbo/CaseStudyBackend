@@ -153,7 +153,7 @@ public abstract class CRUDController<TModel, TDomain>(IMediator mediator) : Cont
     protected void SetEditUrl(IHasEditUrl entity)
     {
         var controllerName = entity.GetType().Name.TrimEnd("Dto");
-        entity.EditUrl = Url.ActionLink(
+        entity.EditUrl = Url?.ActionLink(
             controller: controllerName,
             action: nameof(Update),
             values: new { id = entity.Id })!;
