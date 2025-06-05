@@ -20,7 +20,7 @@ public class Program
             .AddEnvironmentVariables();
 
         // Add services to the container.
-        builder.AddOpenTelemetry(serviceName, builder.Configuration.GetValue<string>("OTLP_Endpoint")!);
+        builder.AddOpenTelemetry(serviceName, builder.Configuration.GetValue<string>("OTLP_Endpoint")!, Assembly.GetExecutingAssembly());
         builder.Services.AddHttpClient();
         builder.Services.AddInfrastructure<InvoiceDbContext>(builder.Configuration, Assembly.GetExecutingAssembly());
 

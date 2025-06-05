@@ -1,14 +1,19 @@
 ﻿using MediatR;
 using Microservice.Common.Application.Features.Events;
+using Microservice.Common.Application.OpenTelemetry.Extensions;
 using Microservice.Common.Domain.Events.Consumer;
 using Microservice.Common.Domain.Events.Producer;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace ModularMonolith.Infrastructure;
 
+[ActivitySourceProvider(nameof(MonolithicIntegrationEventPublisher))]
 public class MonolithicIntegrationEventPublisher : IIntegrationEventPublisher
 {
+    public static readonly ActivitySource ActivitySource = new(nameof(MonolithicIntegrationEventPublisher));
+
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly JsonSerializerOptions _serializerOptions;
     private readonly Dictionary<(string Name, string Version), Type> _eventTypeMap = [];
@@ -53,6 +58,12 @@ public class MonolithicIntegrationEventPublisher : IIntegrationEventPublisher
         var key = (integrationEvent.Name, integrationEvent.Version);
         if (_eventTypeMap.TryGetValue(key, out var bodyType))
         {
+            ActivityContext parentContext = ExtractActivityContext(integrationEvent);
+            using var activity = ActivitySource.StartActivity(nameof(PublishAsync), ActivityKind.Consumer, parentContext);
+            activity?.AddTag("messaging.eventId", integrationEvent.Id);
+            activity?.AddTag("messaging.eventType", integrationEvent.Name);
+            activity?.AddTag("messaging.eventVersion", integrationEvent.Version);
+
             using var scope = _serviceScopeFactory.CreateScope();
             var scopedMediator = scope.ServiceProvider.GetRequiredService<IMediator>();
             var dbContexts = scope.ServiceProvider.GetServices<DbContext>();
@@ -80,5 +91,31 @@ public class MonolithicIntegrationEventPublisher : IIntegrationEventPublisher
                 }
             }
         }
+    }
+
+    private static ActivityContext ExtractActivityContext(IntegrationEvent integrationEvent)
+    {
+        // Create parentContext from integrationEvent.TraceId
+        ActivityContext parentContext = default;
+        if (!string.IsNullOrWhiteSpace(integrationEvent.TraceId))
+        {
+            // Try to parse the TraceId as W3C traceparent header format
+            // If not, fallback to using it as a TraceId only
+            if (ActivityContext.TryParse(integrationEvent.TraceId, null, out var parsedContext))
+            {
+                parentContext = parsedContext;
+            }
+            else
+            {
+                // Try to parse as just a TraceId (hex string)
+                var traceId = ActivityTraceId.CreateFromString(integrationEvent.TraceId);
+                parentContext = new ActivityContext(
+                        traceId,
+                        ActivitySpanId.CreateRandom(),
+                        ActivityTraceFlags.Recorded);
+            }
+        }
+
+        return parentContext;
     }
 }

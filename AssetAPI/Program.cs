@@ -18,7 +18,7 @@ public class Program
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .AddEnvironmentVariables();
 
-        builder.AddOpenTelemetry(serviceName, builder.Configuration.GetValue<string>("OTLP_Endpoint")!);
+        builder.AddOpenTelemetry(serviceName, builder.Configuration.GetValue<string>("OTLP_Endpoint")!, Assembly.GetExecutingAssembly());
         builder.Services.AddInfrastructure<AssetDbContext>(builder.Configuration, Assembly.GetExecutingAssembly());
 
         builder.Services.AddProblemDetails();

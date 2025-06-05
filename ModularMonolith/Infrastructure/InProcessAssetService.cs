@@ -1,18 +1,23 @@
 ﻿using AssetAPI.Presentation.Controllers;
 using InvoiceAPI.Application.External;
+using Microservice.Common.Application.OpenTelemetry.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 using Asset = InvoiceAPI.Application.External.Models.AssetDto;
 using AssetModel = AssetAPI.Presentation.Models.AssetDto;
 
 namespace ModularMonolith.Infrastructure;
 
+[ActivitySourceProvider(nameof(InProcessAssetService))]
 public class InProcessAssetService(AssetController assetController) : IAssetService
 {
+    public static readonly ActivitySource ActivitySource = new(nameof(InProcessAssetService));
+
     private readonly AssetController _assetController = assetController;
 
     public async Task<Asset?> GetAssetAsync(Guid id)
     {
-        // Use the base CRUDController's GetById endpoint
+        using var activity = ActivitySource.StartActivity(nameof(GetAssetAsync));
         var result = await _assetController.Read(id);
         if (result is ObjectResult objectResult && objectResult.Value is AssetModel dto)
             return Map(dto).Single();
@@ -25,7 +30,7 @@ public class InProcessAssetService(AssetController assetController) : IAssetServ
 
     public async Task<IEnumerable<Asset>> GetAssetsAsync(params IEnumerable<Guid> ids)
     {
-        // Use the base CRUDController's GetByIds endpoint
+        using var activity = ActivitySource.StartActivity(nameof(GetAssetsAsync));
         var result = await _assetController.List(ids);
         if (result is ObjectResult objectResult && objectResult.Value is IEnumerable<AssetModel> dtos)
             return Map(dtos);
@@ -38,7 +43,7 @@ public class InProcessAssetService(AssetController assetController) : IAssetServ
 
     public async Task<IEnumerable<Asset>> GetAssetsAsync()
     {
-        // Use the base CRUDController's GetAll endpoint
+        using var activity = ActivitySource.StartActivity(nameof(GetAssetsAsync));
         var result = await _assetController.List([]);
         if (result is ObjectResult objectResult && objectResult.Value is IEnumerable<AssetModel> dtos)
             return Map(dtos);
@@ -49,9 +54,9 @@ public class InProcessAssetService(AssetController assetController) : IAssetServ
         return [];
     }
 
-    // If you want to expose the ValidOn endpoint as well:
     public async Task<IEnumerable<Asset>> GetAssetsValidOnAsync(DateOnly validOn)
     {
+        using var activity = ActivitySource.StartActivity(nameof(GetAssetsValidOnAsync));
         var result = await _assetController.List(validOn);
         if (result is ObjectResult objectResult && objectResult.Value is IEnumerable<AssetModel> dtos)
             return Map(dtos);

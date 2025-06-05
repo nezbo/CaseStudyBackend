@@ -1,17 +1,16 @@
-﻿using Microservice.Common.Infrastructure.Events;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using PackageOpenTelemetry = OpenTelemetry;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Reflection;
+using PackageOpenTelemetry = OpenTelemetry;
 
 namespace Microservice.Common.Application.OpenTelemetry.Extensions;
 public static class WebApplicationBuilderExtensions
 {
-    public static WebApplicationBuilder AddOpenTelemetry(this WebApplicationBuilder builder, string serviceName, string otlpEndpointUrl)
+    public static WebApplicationBuilder AddOpenTelemetry(this WebApplicationBuilder builder, string serviceName, string otlpEndpointUrl, params IEnumerable<Assembly> assemblies)
     {
         builder.Services.AddOpenTelemetry()
             .ConfigureResource(resource =>
@@ -21,7 +20,7 @@ public static class WebApplicationBuilderExtensions
             .WithTracing(tracing =>
             {
                 tracing
-                    .AddSource(RabbitMQDiagnostics.ActivitySourceName)
+                    .AddSourcesFromAssemblies(assemblies)
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddOtlpExporter(options =>

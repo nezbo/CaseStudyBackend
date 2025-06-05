@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.Data.Sqlite;
 using ModularMonolith.Infrastructure;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace ModularMonolith;
 
@@ -32,7 +33,7 @@ public class Program
             .PartManager;
         moduleAssemblies.ForEach(a => partManager.ApplicationParts.Add(new AssemblyPart(a)));
 
-        builder.AddOpenTelemetry(serviceName, builder.Configuration.GetValue<string>("OTLP_Endpoint")!);
+        builder.AddOpenTelemetry(serviceName, builder.Configuration.GetValue<string>("OTLP_Endpoint")!, [..moduleAssemblies, Assembly.GetExecutingAssembly()]);
         builder.Services.AddHttpClient();
 
         builder.Services.AddInfrastructureServices(builder.Configuration, moduleAssemblies)
