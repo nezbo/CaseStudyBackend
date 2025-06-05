@@ -89,11 +89,11 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddEventProcessingServices(this IServiceCollection services, Assembly applicationAssembly)
+    public static IServiceCollection AddEventProcessingServices(this IServiceCollection services, params IEnumerable<Assembly> assemblies)
     {
         // Events
         services.AddHostedService<PublishIntegrationEventsWorker>();
-        IEnumerable<(string,Type)> subscribedIntegrationEvents = ScanForIntegrationEventHandlers(applicationAssembly);
+        IEnumerable<(string,Type)> subscribedIntegrationEvents = ScanForIntegrationEventHandlers(assemblies);
         subscribedIntegrationEvents.ForEach(t => AddIntegrationEventWorker(services, t.Item1, t.Item2));
 
         return services;
@@ -131,9 +131,9 @@ public static class DependencyInjection
             services.GetRequiredService<ILogger<ReceiveIntegrationEventWorker<TBody>>>());
     }
 
-    private static IEnumerable<(string,Type)> ScanForIntegrationEventHandlers(Assembly applicationAssembly)
+    private static IEnumerable<(string,Type)> ScanForIntegrationEventHandlers(params IEnumerable<Assembly> assemblies)
     {
-        return applicationAssembly.DefinedTypes
+        return assemblies.SelectMany(a => a.DefinedTypes)
             .Where(t => t.GetCustomAttribute<IntegrationEventHandlerAttribute>() != null)
             .Select(t => (GetEventKeyFromAttribute(t), GetEventBodyTypeFromHandler(t)));
     }

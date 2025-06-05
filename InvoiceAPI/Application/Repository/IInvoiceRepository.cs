@@ -5,4 +5,5 @@ namespace InvoiceAPI.Application.Repository;
 
 public interface IInvoiceRepository : IGenericRepository<Invoice>
 {
+    public Task<IEnumerable<Invoice>> GetByAssetIdAsync(Guid assetId);
 }

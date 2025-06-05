@@ -1,6 +1,5 @@
 ﻿using InvoiceAPI.Application.External;
 using InvoiceAPI.Application.External.Models;
-using Microservice.Common.Application.Extensions;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.Options;
 using MoreLinq;
@@ -11,7 +10,7 @@ namespace InvoiceAPI.Infrastructure.External;
 
 public class AssetService : IAssetService
 {
-    private RestClient _restClient;
+    private readonly RestClient _restClient;
 
     public AssetService(IConfiguration configuration, IHttpClientFactory httpClientFactory, IOptions<JsonOptions> jsonOptions)
     {

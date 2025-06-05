@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http.Extensions;
 using System.Diagnostics;
 
 namespace Microservice.Common.Application.Features.Events;
+
 internal class PublishIntegrationEventHandler<TIntegrationEvent>(IBaseDbContext dbContext, IHttpContextAccessor httpContextAccessor) 
     : INotificationHandler<TIntegrationEvent>
     where TIntegrationEvent : IntegrationEvent
@@ -20,6 +21,5 @@ internal class PublishIntegrationEventHandler<TIntegrationEvent>(IBaseDbContext 
             integrationEvent.Source = new Uri(_httpContextAccessor.HttpContext.Request.GetDisplayUrl());
 
         await _dbContext.GetSet<IntegrationEvent>().AddAsync(integrationEvent, cancellationToken);
-        //await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

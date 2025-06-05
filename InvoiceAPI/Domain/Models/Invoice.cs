@@ -33,7 +33,7 @@ public class Invoice : AggregateRoot
     public required ushort Month { get; set; }
     public decimal Total { get; private set; }
 
-    private readonly List<Service> _services = [];
+    internal readonly List<Service> _services = [];
 
     public IEnumerable<Service> GetServices() => _services.AsReadOnly();
 

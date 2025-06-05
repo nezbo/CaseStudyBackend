@@ -1,5 +1,4 @@
 ﻿using CloudNative.CloudEvents.SystemTextJson;
-using ErrorOr;
 using Microservice.Common.Domain.Events.Consumer;
 using RabbitMQ.Client.Events;
 using System.Net.Mime;

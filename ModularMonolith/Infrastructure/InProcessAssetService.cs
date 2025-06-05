@@ -1,7 +1,7 @@
 ﻿using AssetAPI.Presentation.Controllers;
 using InvoiceAPI.Application.External;
 using Microsoft.AspNetCore.Mvc;
-using AssetDto = InvoiceAPI.Application.External.Models.AssetDto;
+using Asset = InvoiceAPI.Application.External.Models.AssetDto;
 using AssetModel = AssetAPI.Presentation.Models.AssetDto;
 
 namespace ModularMonolith.Infrastructure;
@@ -10,7 +10,7 @@ public class InProcessAssetService(AssetController assetController) : IAssetServ
 {
     private readonly AssetController _assetController = assetController;
 
-    public async Task<AssetDto?> GetAssetAsync(Guid id)
+    public async Task<Asset?> GetAssetAsync(Guid id)
     {
         // Use the base CRUDController's GetById endpoint
         var result = await _assetController.Read(id);
@@ -23,7 +23,7 @@ public class InProcessAssetService(AssetController assetController) : IAssetServ
         return null;
     }
 
-    public async Task<IEnumerable<AssetDto>> GetAssetsAsync(params Guid[] ids)
+    public async Task<IEnumerable<Asset>> GetAssetsAsync(params IEnumerable<Guid> ids)
     {
         // Use the base CRUDController's GetByIds endpoint
         var result = await _assetController.List(ids);
@@ -36,7 +36,7 @@ public class InProcessAssetService(AssetController assetController) : IAssetServ
         return [];
     }
 
-    public async Task<IEnumerable<AssetDto>> GetAssetsAsync()
+    public async Task<IEnumerable<Asset>> GetAssetsAsync()
     {
         // Use the base CRUDController's GetAll endpoint
         var result = await _assetController.List([]);
@@ -50,7 +50,7 @@ public class InProcessAssetService(AssetController assetController) : IAssetServ
     }
 
     // If you want to expose the ValidOn endpoint as well:
-    public async Task<IEnumerable<AssetDto>> GetAssetsValidOnAsync(DateOnly validOn)
+    public async Task<IEnumerable<Asset>> GetAssetsValidOnAsync(DateOnly validOn)
     {
         var result = await _assetController.List(validOn);
         if (result is ObjectResult objectResult && objectResult.Value is IEnumerable<AssetModel> dtos)
@@ -62,11 +62,11 @@ public class InProcessAssetService(AssetController assetController) : IAssetServ
         return [];
     }
 
-    private static IEnumerable<AssetDto> Map(params IEnumerable<AssetModel> okDtos)
+    private static IEnumerable<Asset> Map(params IEnumerable<AssetModel> okDtos)
     {
         foreach (var asset in okDtos)
         {
-            yield return new AssetDto
+            yield return new Asset
             {
                 Id = asset.Id,
                 Name = asset.Name,

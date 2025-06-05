@@ -1,9 +1,12 @@
 using AssetAPI.Infrastructure.Persistence;
 using InvoiceAPI.Application.External;
+using InvoiceAPI.Domain.Models;
 using InvoiceAPI.Infrastructure.Persistence;
 using Microservice.Common.Application.Extensions;
 using Microservice.Common.Application.OpenTelemetry.Extensions;
 using Microservice.Common.DI;
+using Microservice.Common.Domain.Events.Producer;
+using Microservice.Common.Infrastructure.Events.Workers;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.Data.Sqlite;
 using ModularMonolith.Infrastructure;
@@ -35,6 +38,7 @@ public class Program
         builder.Services.AddInfrastructureServices(builder.Configuration, moduleAssemblies)
             .AddPersistence<AssetDbContext>(builder.Configuration, OpenSqliteConnection(builder.Configuration, nameof(AssetDbContext)))
             .AddPersistence<InvoiceDbContext>(builder.Configuration, OpenSqliteConnection(builder.Configuration, nameof(InvoiceDbContext)));
+        builder.Services.AddHostedService<PublishIntegrationEventsWorker>();
 
         builder.Services.AddProblemDetails();
         builder.Services.AddEndpointsApiExplorer();
@@ -42,7 +46,10 @@ public class Program
         builder.Services.AddDateOnlyTimeOnlyStringConverters();
 
         builder.Services.AddServiceRegistrationsFromAssemblies(builder.Configuration, moduleAssemblies);
+
+        // Modular Monolith Overrides
         builder.Services.AddTransient<IAssetService, InProcessAssetService>();
+        builder.Services.AddSingleton<IIntegrationEventPublisher, MonolithicIntegrationEventPublisher>();
 
         var app = builder.Build();
 
