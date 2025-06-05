@@ -32,8 +32,8 @@ public class Program
             .PartManager;
         moduleAssemblies.ForEach(a => partManager.ApplicationParts.Add(new AssemblyPart(a)));
 
-        builder.Services.AddHttpClient();
         builder.AddOpenTelemetry(serviceName, builder.Configuration.GetValue<string>("OTLP_Endpoint")!);
+        builder.Services.AddHttpClient();
 
         builder.Services.AddInfrastructureServices(builder.Configuration, moduleAssemblies)
             .AddPersistence<AssetDbContext>(builder.Configuration, OpenSqliteConnection(builder.Configuration, nameof(AssetDbContext)))

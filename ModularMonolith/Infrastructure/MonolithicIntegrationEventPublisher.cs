@@ -71,6 +71,7 @@ public class MonolithicIntegrationEventPublisher : IIntegrationEventPublisher
 
             await scopedMediator.Publish((INotification)receivedEvent);
 
+            // Save any changes to the DbContexts
             foreach (var dbContext in dbContexts)
             {
                 if (dbContext.ChangeTracker.HasChanges())

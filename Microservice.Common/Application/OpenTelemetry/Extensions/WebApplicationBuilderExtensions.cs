@@ -1,6 +1,7 @@
 ﻿using Microservice.Common.Infrastructure.Events;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using PackageOpenTelemetry = OpenTelemetry;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -25,6 +26,7 @@ public static class WebApplicationBuilderExtensions
                     .AddHttpClientInstrumentation()
                     .AddOtlpExporter(options =>
                     {
+                        options.Protocol = PackageOpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
                         options.Endpoint = new Uri(otlpEndpointUrl);
                     });
             })
@@ -34,6 +36,7 @@ public static class WebApplicationBuilderExtensions
                     .AddHttpClientInstrumentation()
                     .AddOtlpExporter(options =>
                     {
+                        options.Protocol = PackageOpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
                         options.Endpoint = new Uri(otlpEndpointUrl);
                     });
             })
@@ -41,6 +44,7 @@ public static class WebApplicationBuilderExtensions
             {
                 logging.AddOtlpExporter(options =>
                 {
+                    options.Protocol = PackageOpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
                     options.Endpoint = new Uri(otlpEndpointUrl);
                 });
             });

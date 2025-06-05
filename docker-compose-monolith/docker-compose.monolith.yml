@@ -14,8 +14,8 @@ services:
   jaeger:
     image: jaegertracing/all-in-one:1.58.0
     ports:
-      - "${PORT_JAEGER}:16686" # Jaeger Web UI
-
+      - "${PORT_JAEGER_UI}:16686"
+      
   prometheus:
     image: prom/prometheus:v2.53.0
     ports:
@@ -61,7 +61,8 @@ services:
       - "${PORT_OTEL_PROMETHEUS_EXPORTER}:8889"     # Prometheus metrics exporter (endpoint)
       - "${PORT_OTEL_HEALTH}:13133"   # Health check extension
       - "${PORT_OTEL_ZPAGES}:5679"   # ZPages extension
-      - "${PORT_OTEL_RECEIVER}:4317"     # OTLP Receiver
+      - "${PORT_OTEL_RECEIVER}:4317"     # OTLP Receiver GRPC
+      - "${PORT_OTEL_RECEIVER_PROTO}:4318"     # OTLP Receiver ProtoBuff
     depends_on:
       - jaeger
       - prometheus
