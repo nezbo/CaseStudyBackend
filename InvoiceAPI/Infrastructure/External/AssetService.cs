@@ -36,7 +36,7 @@ public class AssetService : IAssetService
             ?? [];
     }
 
-    public async Task<IEnumerable<AssetDto>> GetAssetsAsync(params Guid[] ids)
+    public async Task<IEnumerable<AssetDto>> GetAssetsAsync(params IEnumerable<Guid> ids)
     {
         var request = new RestRequest("api/v1/asset", Method.Get);
         ids.ForEach(id => request.AddQueryParameter("ids", id.ToString()));

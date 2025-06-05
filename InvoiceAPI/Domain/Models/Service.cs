@@ -12,8 +12,7 @@ public class Service : AggregateRoot
 
     public string Name { get; set; } = string.Empty;
     public decimal Price { get; private set; }
-    public DateOnly? ValidFrom { get; private set; }
-    public DateOnly? ValidTo { get; private set; }
+    public int Quantity { get; set; } = 1;
 
     public Service() : this(null) { }
     private Service(Guid? id) : base(id) { }
@@ -22,13 +21,11 @@ public class Service : AggregateRoot
         Guid invoiceId,
         Guid assetId,
         string name, 
-        decimal price, 
-        DateOnly? validFrom, 
-        DateOnly? validTo)
+        decimal price,
+        int quantity)
     {
-        if (validFrom.HasValue && validTo.HasValue
-            && validTo < validFrom)
-            return ServiceErrors.ValidToMustBeAfterValidFrom;
+        if (quantity < 1)
+            return ServiceErrors.QuantityMustBePositive;
         if (price < 0)
             return ServiceErrors.PriceCanNotBeNegative;
 
@@ -38,8 +35,7 @@ public class Service : AggregateRoot
             AssetId = assetId,
             Name = name,
             Price = price,
-            ValidFrom = validFrom,
-            ValidTo = validTo
+            Quantity = quantity
         };
     }
 }

@@ -17,14 +17,17 @@ public class CreateByAssetsHandler(
 
     public async Task<ErrorOr<Guid>> Handle(CreateByAssetsCommand request, CancellationToken cancellationToken)
     {
-        var assets = await _assetService.GetAssetsAsync(request.AssetIds.ToArray());
+        var assets = await _assetService.GetAssetsAsync(request.AssetIds);
 
         if (!AllAssetsFound(request, assets))
             return InvoiceErrors.AssetsNotFound;
 
-        foreach (var asset in assets)
+        foreach (var assetId in assets.Select(a => a.Id).Distinct())
         {
-            var service = MapAssetToService(asset, request.Data.Id);
+            var quantity = assets.Count(a => a.Id == assetId);
+            var asset = assets.First(a => a.Id == assetId);
+
+            var service = MapAssetToService(asset, request.Data.Id, quantity);
 
             if (service.IsError)
                 return service.Errors;
@@ -47,8 +50,8 @@ public class CreateByAssetsHandler(
         return assets.Select(a => a.Id).Order().SequenceEqual(request.AssetIds.Order());
     }
 
-    private static ErrorOr<Service> MapAssetToService(AssetDto asset, Guid invoiceId)
+    private static ErrorOr<Service> MapAssetToService(AssetDto asset, Guid invoiceId, int quantity = 1)
     {
-        return Service.Create(invoiceId, asset.Id, asset.Name, asset.Price, asset.ValidFrom, asset.ValidTo);
+        return Service.Create(invoiceId, asset.Id, asset.Name, asset.Price, quantity);
     }
 }
