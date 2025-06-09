@@ -33,7 +33,7 @@ public class Program
             .PartManager;
         moduleAssemblies.ForEach(a => partManager.ApplicationParts.Add(new AssemblyPart(a)));
 
-        builder.AddOpenTelemetry(serviceName, builder.Configuration.GetValue<string>("OTLP_Endpoint")!, [..moduleAssemblies, Assembly.GetExecutingAssembly()]);
+        builder.AddOpenTelemetry(serviceName, builder.Configuration.GetValue<string>("OTLP_Endpoint")!, AppDomain.CurrentDomain.GetAssemblies());
         builder.Services.AddHttpClient();
 
         builder.Services.AddInfrastructureServices(builder.Configuration, moduleAssemblies)

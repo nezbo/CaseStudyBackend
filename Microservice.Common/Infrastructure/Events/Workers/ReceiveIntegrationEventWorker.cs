@@ -93,6 +93,19 @@ public class ReceiveIntegrationEventWorker<TEvent>
                 {
                     var mediator = scope.ServiceProvider.GetService<IMediator>()!;
                     await mediator.Publish(evtDataResponse, _cts.Token);
+
+                    // Find all DbContext instances in the scope
+                    var dbContexts = scope.ServiceProvider
+                        .GetServices<Microsoft.EntityFrameworkCore.DbContext>()
+                        .ToList();
+
+                    foreach (var dbContext in dbContexts)
+                    {
+                        if (dbContext.ChangeTracker.HasChanges())
+                        {
+                            await dbContext.SaveChangesAsync(_cts.Token);
+                        }
+                    }
                 }
                 await eventConsumer.Channel.BasicAckAsync(ea.DeliveryTag, false);
             }
