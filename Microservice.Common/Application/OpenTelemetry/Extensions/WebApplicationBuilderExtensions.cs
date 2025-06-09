@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using MediatR;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
@@ -12,6 +13,8 @@ public static class WebApplicationBuilderExtensions
 {
     public static WebApplicationBuilder AddOpenTelemetry(this WebApplicationBuilder builder, string serviceName, string otlpEndpointUrl, params IEnumerable<Assembly> assemblies)
     {
+        builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ActivityTracingBehavior<,>));
+
         builder.Services.AddOpenTelemetry()
             .ConfigureResource(resource =>
             {
